@@ -1,0 +1,18 @@
+[project]
+name = "convertEXE"
+version = "1.0.0"
+description = "Convert assembled 6800 code to a Sphere-1 loadable cassette"
+requires-python = ">=3.9"
+dependencies = [
+    "click>=8.1",
+]
+
+[project.scripts]
+repo = "repo:cli"
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.module]
+name = "repo"
