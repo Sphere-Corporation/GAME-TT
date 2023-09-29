@@ -83,6 +83,11 @@ MLTCHR
 
 
 MULTCR  JSR     STR           ; Store A/B/X
+        ;LDAA    #$0D
+        ;JSR     MLTCHR
+        ;JSR     RSTR
+        ;RTS
+
 .AGAIN  DECB
         BEQ     .OUT
         STAB    .MCRB

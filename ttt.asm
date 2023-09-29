@@ -3,7 +3,7 @@
         .OR $0200               ; START OF ASSEMBLY ADDRESS
         .LI OFF                 ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
 
-; Assembled with sbasm3 (www.sbprojects.net)
+; Assembled with sbasm3 (https://www.sbprojects.net/sbasm/)
 ; All directives are specific to sbasm3, and may need to be changed for other assemblers
 
         BRA     START   ;       Go to the start of the program - skip the variables
@@ -113,12 +113,6 @@ INIT
         COMA                ; Show Game title (and how to get help)
         STAA    SHOWHLP
 
-        ;replaced by COMA and STAA above
-        ;LDAA    #0          ; Show Game title (and how to get help)
-        ;STAA    SHOWHLP
-
-
-
         ; Reset IBOARD here from LBOARD
                             ; AccA STILL haz a zero in it
         ;LDAA    #0
@@ -147,17 +141,6 @@ INIT
 GLOOP                        ; Main Game Loop
 
 ROUND   
-        ; section for debug only
-        ;JSR     HOME
-        ;LDAA    SPACE   
-        ;LDAB    #9
-        ;JSR     MLTCHR
-       ; 
-       ; JSR     HOME
-       ; LDX     #IBOARD 
-       ; JSR     PUTMSG
-        ; end of debug section
-
 
         JSR     GETCHRB      ; Key pressed is returned in AccA
         CMPA    ESCCHR       ; ESCape character
@@ -215,12 +198,6 @@ ROUND
         SUBA    #6          ; Cursor position already in AccA/AccB, so move left
         STAA    CURSX
         BRA     .AROUND   
-
-.GC     LDAA    CURSX   ; RESTORE THE CHARACTER PRIOR TO THE CURSOR MOVE
-        LDAB    CURSY 
-        LDX     CHARAT         
-        JSR     PRTXY           
-        RTS
 
 .AROUND LDAA    CURSOR
         STAA    XYCHA
