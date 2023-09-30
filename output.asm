@@ -248,10 +248,13 @@ XPRNTX  JSR     RSTR          ; Restore X/B/X
 
 
 PRNTO   JSR     STR           ; Store A/B/X
+        
+        LDAA    SPACE
+        STAA    XYCHA
+        LDAA    SCRTCHA
+        JSR     PRTXY
         LDAA    NOUGHT
         STAA    XYCHA
-        LDAA    SPACE
-        STAA    CHARAT        ; Store previous character as it will be
         LDAA    SCRTCHA
         DECA
         DECB

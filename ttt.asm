@@ -172,6 +172,9 @@ ROUND
 .ARRD   LDAB    CURSY       ; Ensure that we don't go down below the board.
         CMPB    #15
         BEQ     .AGAIN
+        JSR     RSTCHA
+        
+        ; Restore character in CHARAT in place before moving cursor onward
         ADDB    #6          ; Cursor position already in AccA/AccB, so move down
         STAB    CURSY
         BRA     .AROUND
@@ -179,6 +182,9 @@ ROUND
 .ARRU   LDAB    CURSY       ; Ensure that we don't go up above the board.
         CMPB    #3
         BEQ     .AGAIN
+        JSR     RSTCHA
+       
+        ; Restore character in CHARAT in place before moving cursor onward
         SUBB    #6          ; Cursor position already in AccA/AccB, so move up
         STAB    CURSY
         BRA     .AROUND
@@ -186,6 +192,9 @@ ROUND
 .ARRR   LDAA    CURSX      
         CMPA    #22
         BEQ     .AGAIN
+        JSR     RSTCHA
+       
+        ; Restore character in CHARAT in place before moving cursor onward
         LDAA    CURSX
         ADDA    #6           ; Cursor position already in AccA/AccB, so move right
         STAA    CURSX
@@ -194,12 +203,15 @@ ROUND
 .ARRL   LDAA    CURSX      
         CMPA    #10
         BEQ     .AGAIN
+        JSR     RSTCHA
+        ; Restore character in CHARAT in place before moving cursor onward
         LDAA    CURSX
         SUBA    #6          ; Cursor position already in AccA/AccB, so move left
         STAA    CURSX
         BRA     .AROUND   
 
-.AROUND LDAA    CURSOR
+.AROUND JSR     GTCHRAT         ; Store character under where cursor will be in CHARAT
+        LDAA    CURSOR
         STAA    XYCHA
         LDAA    CURSX
         LDAB    CURSY     
@@ -208,6 +220,39 @@ ROUND
 .AGAIN  JMP     ROUND
 
 DONE    RTS                 ; Exit Game Loop subroutine
+
+
+;===============================================================================================
+; RSTCHA: Restore the character at the current cursor position
+; 
+; A Accumulator contains the X coordinate
+; B Accumulator contains the Y coordinate
+;
+RSTCHA
+        JSR     STR
+        LDAA    CHARAT
+        STAA    XYCHA
+        LDAA    CURSX
+        JSR     PRTXY
+        JSR     RSTR
+        RTS
+;===============================================================================================
+; GTCHRAT: Get the character at the cursor position stored as below
+; 
+; CURSX Accumulator contains the X coordinate
+; CURSY Accumulator contains the Y coordinate
+;
+; CHARAT Contains the character at the supplied coordinates (on exit)
+;
+GTCHRAT         ; Store character at cursor position
+        JSR     STR
+        LDAA    CURSX
+        LDAB    CURSY
+        JSR     CURXY   ; ensure pointing at the current cursor position
+        LDAA    0,X
+        STAA    CHARAT
+        JSR     RSTR
+        RTS
 
 END
 
