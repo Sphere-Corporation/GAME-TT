@@ -3,3 +3,5 @@ build.asm
 
 # Ignore generated binary files
 ttt.exe
+
+ttt.exe.js
