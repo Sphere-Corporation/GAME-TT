@@ -110,7 +110,7 @@ INIT
         LDAA    #1          ; Cross's turn first
         STAA    TURN        ; Initialise.....
         
-        COMA                ; Show Game title (and how to get help)
+        LDAA    #0          ; Show Game title (and how to get help)
         STAA    SHOWHLP
 
         ; Reset IBOARD here from LBOARD

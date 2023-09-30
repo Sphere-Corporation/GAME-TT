@@ -369,16 +369,19 @@ INSTR   JSR     STR
         LDAA    SHOWHLP
         CMPA    #0
         BEQ     .NOHELP
+        LDAA    #0
+        STAA    SHOWHLP
         LDX     #.INSLN
         BRA     .SHOW
-.NOHELP LDAA    #SPACE       ; Use a " " character
+.NOHELP LDAA    #1
+        STAA    SHOWHLP
+        LDAA    #SPACE       ; Use a " " character
         LDAB    #31          ; Print it $31 times
         JSR     MLTCHR
         BRA     .XINSTR
 .SHOW   JSR     PUTMSG
         JSR     RSTR
-.XINSTR COM     SHOWHLP
-        RTS
+.XINSTR RTS
 
 .INSLN   .AZ  /ARROWS-MOVE,ENT-PLACE,ESC-RESET/
 
