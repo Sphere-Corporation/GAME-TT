@@ -22,6 +22,9 @@
 
 - **Native 6800 Assembly code.** No requirement for a Sphere-1 BASIC ROM.
 - **Play against your Sphere-1.** Challenge your computer to a skillful game.
+- **Read about Noughts and Crosses [here](https://en.wikipedia.org/wiki/Tic-tac-toe)**
+
+
 
 ## Status
 This game is still under development. Not all features have been implemented.
