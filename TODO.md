@@ -3,6 +3,7 @@
     - [X] store and restore character under cursor 
     - [X] ensure cursor cannot go out of the grid
     - [ ] ensure that cursor cant put piece in occupied square
+    - [X] change cursor to a square
 - [ ] do win/draw  logic
 - [ ] use animated logo on front page by possibly using interrupts
 - [ ] Optimise/Reduce

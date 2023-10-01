@@ -165,8 +165,30 @@ PRTXY   JSR     STR
 ;
 ; CURSX,CURSY : Contains the current location of the cursor (X,Y)
 ; TURN        : Contains the current turn : 0 for Noughts, 1 for Crosses
+; POSIT       : Contains the "square number" being targetted  
 
-PUTPCE  LDAA    TURN
+PUTPCE  
+        BRA     .TMP    ; TEMPORARILIY JUM AROUND THIS SECTION
+        ; Check to see if the square is occupied first
+        LDAA    POSIT
+        LDX     IBOARD
+.PPEL   
+        CMPA    #0
+        BEQ     .PPXL
+        INX     
+        DECA
+        BRA     .PPEL
+.PPXL   LDAA    0,X
+
+        STAA    XYCHA
+        LDAA    #4
+        LDAB    #4
+        JSR     PRTXY
+        CMPA    DASH
+        BNE     XPUTPCE ; If so, exit
+        
+        ; END OF CODE THAT CHECKS FOR FREE SPACE
+.TMP        LDAA    TURN
         CMPA    #0
         BEQ     .DO0
 .DOX    JSR     .COMMON
@@ -396,3 +418,38 @@ INSTR   JSR     STR
 CLS     JSR     HOME    ; Move cursor to top left
         JSR     CLEAR   ; Clear the screen
         RTS
+
+;===============================================================================================
+; RSTCHA: Restore the character at the current cursor position
+; 
+; A Accumulator contains the X coordinate
+; B Accumulator contains the Y coordinate
+;
+RSTCHA
+        JSR     STR
+        LDAA    CHARAT
+        STAA    XYCHA
+        LDAA    CURSX
+        JSR     PRTXY
+        JSR     RSTR
+        RTS
+        
+;===============================================================================================
+; GTCHRAT: Get the character at the cursor position stored as below
+; 
+; CURSX Accumulator contains the X coordinate
+; CURSY Accumulator contains the Y coordinate
+;
+; CHARAT Contains the character at the supplied coordinates (on exit)
+;
+GTCHRAT         ; Store character at cursor position
+        JSR     STR
+        LDAA    CURSX
+        LDAB    CURSY
+        JSR     CURXY   ; ensure pointing at the current cursor position
+        LDAA    0,X
+        STAA    CHARAT
+        JSR     RSTR
+        RTS
+
+

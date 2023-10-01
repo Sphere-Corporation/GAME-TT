@@ -17,7 +17,7 @@ CSRPTR  .EQU     $1C            ; Current cursor location
 ; Symbols
 CROSS   .AS    #88      ; Cross symbol
 NOUGHT  .AS    #79      ; Nought symbol
-CURSOR  .AS    #$40     ; Cursor Symbol
+CURSOR  .AS    #$FF ;#$40     ; Cursor Symbol
 SPACE   .AS    #32      ; Space Character
 DASH    .AS    #$2D     ; Dash character
 HELPU   .AS    #$48     ; Upper case "H"
@@ -115,7 +115,7 @@ INIT
 
         ; Reset IBOARD here from LBOARD
                             ; AccA STILL haz a zero in it
-        ;LDAA    #0
+        LDAA    #0
         LDAB    DASH
         LDX     #IBOARD
 .RILP   STAB    0,X
@@ -222,37 +222,6 @@ ROUND
 DONE    RTS                 ; Exit Game Loop subroutine
 
 
-;===============================================================================================
-; RSTCHA: Restore the character at the current cursor position
-; 
-; A Accumulator contains the X coordinate
-; B Accumulator contains the Y coordinate
-;
-RSTCHA
-        JSR     STR
-        LDAA    CHARAT
-        STAA    XYCHA
-        LDAA    CURSX
-        JSR     PRTXY
-        JSR     RSTR
-        RTS
-;===============================================================================================
-; GTCHRAT: Get the character at the cursor position stored as below
-; 
-; CURSX Accumulator contains the X coordinate
-; CURSY Accumulator contains the Y coordinate
-;
-; CHARAT Contains the character at the supplied coordinates (on exit)
-;
-GTCHRAT         ; Store character at cursor position
-        JSR     STR
-        LDAA    CURSX
-        LDAB    CURSY
-        JSR     CURXY   ; ensure pointing at the current cursor position
-        LDAA    0,X
-        STAA    CHARAT
-        JSR     RSTR
-        RTS
 
 END
 
