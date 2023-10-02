@@ -69,8 +69,7 @@ POSIT    .AS     #0              ; Position of the current cursor on the board
 ;    Starting position is ALWAYS #5 (Centre)
 
 ; Constants
-ZERO    .AS     #0              ; Constant for zero
-WINNING .DB     #6,#12,#15,#18,#24 ; Winning combinations
+ZERO    .AS     #0                 ; Constant for zero
 
 
 ; Firmware entry points (PDS-V3N)
