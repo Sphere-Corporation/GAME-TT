@@ -15,7 +15,8 @@
 - [X] put an instruction facility
 - [X] put current player O/X up as a large symbol
 
-- [-] At start of instructions, try and put asci $94 etc - arrow key symbols
+
+- [!] At start of instructions, try and put ascii $94 etc - arrow key symbols
 
 
 X = Done

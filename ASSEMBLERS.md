@@ -10,14 +10,14 @@ This compatibility chart is designed to assist developers in adapting this code 
 
 Other directives may be added over time as they are used.
 
-|<b>Directive<b>|<b>[SB Assembler v3](./ASSEMBLERS/sbasm3.md)</b>|<b>[ASM-80](./ASSEMBLERS/asm80.md)</b>|
-|-|-|-|
+|<b>Directive<b>|<b>[SB Assembler v3](./ASSEMBLERS/sbasm3.md)</b>|<b>[ASM-80](./ASSEMBLERS/asm80.md)</b>|[Sphere-1 Mini-assembler](./ASSEMBLERS/sphere-mini.md)|
+|-|-|-|-|
 |Target Processor Type<pre>|.CR| .CPU|
 |Target file name and format|.TF||
-|Start of assembly address|.OR|ORG|
+|Start of assembly address|.OR|ORG|=|
 |Toggle assembly listing|.LI||
 |Include another source file|.IN|.INCLUDE|
-|Equate/Create a constant|.EQU|EQU|
+|Equate/Create a constant|.EQU|EQU|=|
 |Define an ASCII string|.AS|.ISTR|
 |Define a word|.DB|DB|
 <hr>
