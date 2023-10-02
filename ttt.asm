@@ -70,6 +70,8 @@ POSIT    .AS     #0              ; Position of the current cursor on the board
 
 ; Constants
 ZERO    .AS     #0              ; Constant for zero
+WINNING .DB     #6,#12,#15,#18,#24 ; Winning combinations
+
 
 ; Firmware entry points (PDS-V3N)
 

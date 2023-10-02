@@ -1,0 +1,1 @@
+../../SOFTWARE/asm/sbasm3/sbasm PDS-V3N.asm
