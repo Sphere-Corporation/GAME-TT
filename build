@@ -1,5 +1,8 @@
 BUILD=`date +"%Y%m%d-%T" `
 echo ".BUILD   .AZ  /         BUILD:$BUILD /" > build.asm
 sbasm ttt.asm;
-python3 cas.py --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader 
+python3 ./CONVERT/cas.py --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader 
+mv ttt.exe OUTPUT
+mv ttt.exe.js OUTPUT
+mv *.wav OUTPUT
 rm build.asm
