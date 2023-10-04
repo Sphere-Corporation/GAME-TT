@@ -170,6 +170,8 @@ def cli(base, input, output, prefix, title, cassette, noheader, silent):
         click.secho(_package_name + ' ' + _version + ' on ' + TODAY + CR, fg="green", bold=True)
         click.secho('Options: ' + ('No JS header' if noheader else 'With JS header'), fg="green")
         click.secho('         ' + ('With cassette output' if cassette else 'No cassette output') + CR, fg="green")
+      
+
 
     #
     # Validate options supplied
@@ -190,6 +192,13 @@ def cli(base, input, output, prefix, title, cassette, noheader, silent):
         click.secho('Prefix should either be empty or 2 characters: ' + prefix, fg="red", err=True)
         exit()
         
+    # Check for lowercase/uppercase prefix
+    ucase_prefix = prefix.upper()
+    if ucase_prefix != prefix:
+        prefix = ucase_prefix
+        click.secho('Info:    Prefix changed to upper case'  + CR, fg="blue")
+  
+    
     # Construct output filename if none is supplied
     if output == "":
         output = input + EXTENSION;

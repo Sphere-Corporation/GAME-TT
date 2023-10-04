@@ -68,6 +68,7 @@ Early version of the game running on a Sphere-1.
   <source src="./images/SphereOXO.mp4" type="video/mp4">
 </video>
 </p>
+
 ### Acknowledgements 
 
 **Ben Zotto**<br>
