@@ -10,7 +10,7 @@
 from datetime import date
 
 import click
-import encode
+import encode_tape
 
 """
 Takes a binary Sphere-1 program and converts it into a format that can be
@@ -20,26 +20,26 @@ See http://en.wikipedia.org/wiki/Kansas_City_standard
 """
 
 # Define software characteristics
-_version = '1.0.0';
+_version = '1.0.1';
 _package_name = 'convertEXE';
-_message = '%(package)s (Version %(version)s): Convert MC6800 assembled code into Sphere-1 loadable package.';
+_message = '%(package)s (Version %(version)s): Convert MC6800 assembled code into Sphere-1 loadable package and other formats.';
 
 # Define Tape Constants
-SYNC       = '0x16, '   # Synchronisation Byte
-CONST_BYTE = '0x1B, '   # 
-EOT_BYTE   = '0x17, '   # End of Transmission Byte
+SYNC                =   '0x16, '   # Synchronisation Byte
+CONST_BYTE          =   '0x1B, '   # 
+EOT_BYTE            =   '0x17, '   # End of Transmission Byte
 
 # Define internal Constants
-ERROR_CONSTANT = "ERROR:"
-CR = '\n'
-TAB = '\t'
-TODAY = date.today().strftime("%d/%m/%Y")
-EXTRA_DATA = 13
-CASSETTE_EXTENSION='.wav'
+ERROR_CONSTANT      =   "ERROR:"
+CR                  =   '\n'
+TAB                 =   '\t'
+TODAY               =   date.today().strftime("%d/%m/%Y")
+EXTRA_DATA          =   13
+CASSETTE_EXTENSION  =   '.wav'
 
 # Define defaults
-BLOCK_NAME='XX'
-EXTENSION=".js"
+BLOCK_NAME          =   'XX'
+EXTENSION           =   ".js"
 
 def fhex(value):
     return f'0x{value:02x}'.upper().replace('X','x')
@@ -135,6 +135,24 @@ def write_preamble(filehandle, filename, prefix, title, base, noheader):
 def write_postamble(filehandle):
     filehandle.write(CR + "]};" + CR)
     
+def output_hex(output, prefix, title, base, noheader,binary_data, silent):
+    # The business end.....
+    with open(output,'w') as file:
+        
+        # Output the first stage of information to allow the file to be appended to the Virtual Sphere codebase
+        write_preamble(file, input, prefix, title, base, noheader)
+
+        # Output the binary content of the executable in the correct format
+        write_binary_content(file, binary_data, prefix)
+        if not(silent):
+            click.secho('Written binary content         : ' + str(len(binary_data) + EXTRA_DATA)+ ' bytes', fg="green")
+        
+        # Output the final stage of information to the data block and close the braces etc
+        write_postamble(file)
+        if not(silent):
+            click.secho(CR + 'Output JS file created         : ' + output + CR, fg="green")
+
+
 @click.command()
 @click.option("--base","-b", help="Base address.",required=True)
 @click.option("--cassette","-c", help="Cassette output file (experimental).",required=False,default="")
@@ -176,25 +194,13 @@ def cli(base, input, output, prefix, title, cassette, noheader, silent):
     if output == "":
         output = input + EXTENSION;
     
-    # The business end.....
-    with open(output,'w') as file:
-        
-        # Output the first stage of information to allow the file to be appended to the Virtual Sphere codebase
-        write_preamble(file, input, prefix, title, base, noheader)
-
-        # Output the binary content of the executable in the correct format
-        write_binary_content(file, binary_data, prefix)
-        if not(silent):
-            click.secho('Written binary content         : ' + str(len(binary_data) + EXTRA_DATA)+ ' bytes', fg="green")
-        
-        # Output the final stage of information to the data block and close the braces etc
-        write_postamble(file)
-        if not(silent):
-            click.secho(CR + 'Output JS file created         : ' + output + CR, fg="green")
-
+    # Output the hex array
+    output_hex(output, prefix, title, base, noheader,binary_data, silent)
+    
+    # Do we need to produce a WAV file for cassette?
     if cassette != "":
         cassette_file = cassette + CASSETTE_EXTENSION
-        encode.write_wav(input,cassette_file);
+        encode_tape.write_wav(input,cassette_file);
         click.secho('Cassette file created          : ' + cassette_file, fg="green")
         
 

@@ -1,7 +1,7 @@
 BUILD=`date +"%Y%m%d-%T" `
 echo ".BUILD   .AZ  /         BUILD:$BUILD /" > build.asm
 ../../SOFTWARE/asm/sbasm3/sbasm ttt.asm;
-python3 cas.py --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader  --cassette OXO
+python3 cas.py --input ttt.exe --prefix OX --base 0200 --title "OXO" --noheader  --cassette OXO
 rm build.asm
 cp ../../SOFTWARE/site/cass_temp.js ../../SOFTWARE/site/cassette.js
 cat ttt.exe.js >> ../../SOFTWARE/site/cassette.js
