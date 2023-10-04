@@ -64,9 +64,7 @@ Early version of the game running on a Sphere-1.
 </p>
 
 <p align="center">
-<video width="320" height="240" controls>
-  <source src="./images/SphereOXO.gif">
-</video>
+  <img  src="./images/SphereOXO.gif" width="320" height="240" controls>
 </p>
 
 ### Acknowledgements 
