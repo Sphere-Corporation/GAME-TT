@@ -29,6 +29,7 @@
 This game is still under development. Not all features have been implemented.
 
 For an up-to-date list of tasks yet to complete, look at the [TODO file](./TODO.md)
+
 ## Installation and Requirements
 
 There are a number of prerequisites for downloading and running the game.
@@ -53,9 +54,18 @@ git clone https://github.com/Sphere-Corporation/GAME-TT.git`
 cd GAME-TT
 ./build
 ```
+### In action!
+
+The game running on a Sphere-1.
+
+<p align="center">
+	<img src="./images/Sphere1.JPG" width="250">
+	<img src="./images/Sphere2.JPG" width="250">
+</p>
+
 
 ### Acknowledgements 
 
 **Ben Zotto**<br>
-Inspiration, a wealth of information, the image of the Sphere-1 used above, and for alerting me to the Sphere-1 in the first place.
+Inspiration, a wealth of information, the image of the Sphere-1 used above, for running my software on his Sphere-1 hardware,and for alerting me to the Sphere-1 in the first place.
 
