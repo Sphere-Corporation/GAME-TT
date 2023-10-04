@@ -130,8 +130,8 @@ BOARD   JSR     CLS        ; Clear the screen ready to show board
         JSR     PUTMSG
         BRA     .LOOP1
 .EXIT1  JSR     PUTMSG      ; Output the final vertical line
-        LDAA    #SPACE           ; Use an "@" character
-        LDAB    #12          ; Print it $15 times
+        LDAA    SPACE       ; Use an " " character
+        LDAB    #12         ; Print it 12 times
         JSR     MLTCHR
         LDX     #.HLPMSG    ; Output the Help message
         JSR     PUTMSG
@@ -400,7 +400,7 @@ INSTR   JSR     STR
         BRA     .SHOW
 .NOHELP LDAA    #1
         STAA    SHOWHLP
-        LDAA    #SPACE       ; Use a " " character
+        LDAA    SPACE        ; Use a " " character
         LDAB    #31          ; Print it $31 times
         JSR     MLTCHR
         BRA     .XINSTR
