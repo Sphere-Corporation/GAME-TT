@@ -28,7 +28,7 @@
 ## Status
 This game is still under development. Not all features have been implemented.
 
-For an up-to-date list of tasks yet to complete, look at the [TODO file](./TODO.md)
+For an up-to-date list of tasks yet to complete, look at the [TODO file](./TODO.md) and the [Issues](https://github.com/Sphere-Corporation/GAME-TT/issues).
 
 ## Installation and Requirements
 
@@ -56,14 +56,18 @@ cd GAME-TT
 ```
 ### In action!
 
-The game running on a Sphere-1.
+Early version of the game running on a Sphere-1.
 
 <p align="center">
 	<img src="./images/Sphere1.JPG" width="250">
 	<img src="./images/Sphere2.JPG" width="250">
 </p>
 
-
+<p align="center">
+<video width="320" height="240" controls>
+  <source src="./images/SphereOXO.mp4" type="video/mp4">
+</video>
+</p>
 ### Acknowledgements 
 
 **Ben Zotto**<br>
