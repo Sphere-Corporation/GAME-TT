@@ -17,7 +17,7 @@ CSRPTR  .EQU     $1C            ; Current cursor location
 ; Symbols
 CROSS   .AS    #88      ; Cross symbol
 NOUGHT  .AS    #79      ; Nought symbol
-CURSOR  .AS    #$FF ;#$40     ; Cursor Symbol
+CURSOR  .AS    #$FF     ; Cursor Symbol
 SPACE   .AS    #32      ; Space Character
 DASH    .AS    #$2D     ; Dash character
 HELPU   .AS    #$48     ; Upper case "H"
@@ -30,6 +30,10 @@ ARROWR  .AS    #$12     ; Right cursor
 ARROWD  .AS    #$13     ; Down cursor
 ENTER   .AS    #$0D     ; ENTER Key
 ESCCHR  .AS    #$1B     ; ESCape Key
+WASDW   .AS    #$57     ; W key (WASD) - Up
+WASDA   .AS    #$41     ; A key (WASD) - Left
+WASDS   .AS    #$53     ; S key (WASD) - Down
+WASDD   .AS    #$44     ; D key (WASD) - Right
 
 ; Board Initial Cursor Positions
 ICURSX   .DA     #16
@@ -153,12 +157,20 @@ ROUND
         BEQ     .ENT         ; ENTER Key
         CMPA    ARROWR
         BEQ     .ARRR        ; Arrow Right
+        CMPA    WASDD
+        BEQ     .ARRR        ; WASD-D Right
         CMPA    ARROWL
         BEQ     .ARRL        ; Arrow Left
+        CMPA    WASDA
+        BEQ     .ARRL        ; WASD-A Left
         CMPA    ARROWU
         BEQ     .ARRU        ; Arrow Up
+        CMPA    WASDW
+        BEQ     .ARRU        ; WASD-W Up
         CMPA    ARROWD
         BEQ     .ARRD        ; Arrow Down
+        CMPA    WASDS
+        BEQ     .ARRD        ; WASD-W Down
         BRA     ROUND
 ; End of main game loop - subroutines in game loop appear below.
 
