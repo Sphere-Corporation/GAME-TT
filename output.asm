@@ -198,7 +198,8 @@ PUTPCE
         LDAA    CROSS
         
         STAA    0,X
-        LDAA    #0
+        ;LDAA    #0             ; FIX for ISSUE#2
+        CLRA
         STAA    TURN
 
         LDAA    DISPLX
@@ -394,7 +395,9 @@ INSTR   JSR     STR
         LDAA    SHOWHLP
         CMPA    #0
         BEQ     .NOHELP
-        LDAA    #0
+        ; FIX for ISSUE#2
+        ;LDAA    #0
+        CLRA
         STAA    SHOWHLP
         LDX     #.INSLN
         BRA     .SHOW

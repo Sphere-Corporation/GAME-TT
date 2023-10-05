@@ -115,12 +115,14 @@ INIT
         LDAA    #1          ; Cross's turn first
         STAA    TURN        ; Initialise.....
         
-        LDAA    #0          ; Show Game title (and how to get help)
-        STAA    SHOWHLP
+        ;LDAA    #0          ; Show Game title (and how to get help)
+        ;STAA    SHOWHLP
+        CLR     SHOWHLP         ; FIX for ISSUE#2
 
         ; Reset IBOARD here from LBOARD
                             ; AccA STILL haz a zero in it
-        LDAA    #0
+        ;LDAA    #0
+        CLRA    ; FIX for ISSUE#2
         LDAB    DASH
         LDX     #IBOARD
 .RILP   STAB    0,X
