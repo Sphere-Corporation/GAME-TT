@@ -173,7 +173,7 @@ PUTPCE
         LDAA    POSIT
         LDX     IBOARD
 .PPEL   
-        CMPA    #0
+        
         BEQ     .PPXL
         INX     
         DECA
@@ -189,7 +189,7 @@ PUTPCE
         
         ; END OF CODE THAT CHECKS FOR FREE SPACE
 .TMP        LDAA    TURN
-        CMPA    #0
+        
         BEQ     .DO0
 .DOX    JSR     .COMMON
         JSR     PRNTX           ; Print Cross at correct location
@@ -198,9 +198,7 @@ PUTPCE
         LDAA    CROSS
         
         STAA    0,X
-        ;LDAA    #0             ; FIX for ISSUE#2
-        CLRA
-        STAA    TURN
+        CLRA    TURN
 
         LDAA    DISPLX
         LDAB    DISPLY
@@ -214,7 +212,6 @@ PUTPCE
         LDAA    POSIT
 .DOXOL  INX
         DECA
-        CMPA    #0
         BNE     .DOXOL
         DEX
         RTS
@@ -370,15 +367,13 @@ CURXY   STAA    XCRD    ; Store AccA/AccB scratch locations
 ; Prepare for the next line by decrementing the Y coordinate until zero
         LDAA    YCRD
         DECA
-        CMPA    #0
         BEQ     TOX
         STAA    YCRD
         BRA     .NXTLN
 
 ; Add the X coordinate by decrementing the supplied X coordinate until zero
 TOX     LDAB    XCRD
-.XAGAIN CMPB    #0
-        BEQ     XCURXY
+.XAGAIN BEQ     XCURXY
         INX
         DECB
         BRA     .XAGAIN
@@ -393,10 +388,7 @@ XCURXY  RTS
 INSTR   JSR     STR
         JSR     HOME
         LDAA    SHOWHLP
-        CMPA    #0
         BEQ     .NOHELP
-        ; FIX for ISSUE#2
-        ;LDAA    #0
         CLRA
         STAA    SHOWHLP
         LDX     #.INSLN
