@@ -8,19 +8,19 @@
 ;
 SPLASH  JSR     STR
         JSR     CLS        ; Clear the screen and output two lines of banner
-        LDAB    #2          ; Produce 2 blank lines
+        LDAB    #2         ; Produce 2 blank lines
         JSR     MULTCR
-        LDX     #.SPLSH1    ; Output the Title of the program
+        LDX     #.SPLSH1   ; Output the Title of the program
         JSR     PUTMSG
-        LDAB    #8          ; Produce 8 blank lines
+        LDAB    #8         ; Produce 8 blank lines
         JSR     MULTCR
-        LDX     #.SPLSH2    ; Then the copyright message
+        LDX     #.SPLSH2   ; Then the copyright message
         JSR     PUTMSG
-        LDX     #.BUILD      ; Display Build information
+        LDX     #.BUILD    ; Display Build information
         JSR     PUTMSG
-        LDAB    #3          ; Produce 2 blank lines
+        LDAB    #3         ; Produce 2 blank lines
         JSR     MULTCR
-        LDX     #.MSGAGN    ; ... and wait for a keypress
+        LDX     #.MSGAGN   ; ... and wait for a keypress
         JSR     PUTMSG
         JSR     RSTR
 .FINAL  RTS
@@ -206,6 +206,7 @@ PUTPCE
         LDAA    DISPLO
         LDAB    DISPLY        
         JSR     PRNTO           ; Print large Nought
+        CLR     TURN     
         BRA     .COMMON
         
 .OXOD   LDX     #IBOARD
