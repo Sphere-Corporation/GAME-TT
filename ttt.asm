@@ -72,6 +72,8 @@ POSIT    .AS     #0              ; Position of the current cursor on the board
 ;
 ;    Starting position is ALWAYS #5 (Centre)
 
+PIECES  .DA     #0      ; Number of pieces placed on the board
+WDSTAT  .DA     #0      ; Win/Draw status
 ; Constants
 ZERO    .AS     #0                 ; Constant for zero
 
@@ -117,7 +119,8 @@ INIT
         
         ; Show Game title (and how to get help)
 
-        CLR     SHOWHLP        
+        CLR     SHOWHLP         ; Reset "show help"
+        CLR     PIECES          ; Reset number of pieces on the board
 
         ; Reset IBOARD here from LBOARD
                 
@@ -146,8 +149,15 @@ INIT
 
 GLOOP                        ; Main Game Loop
 
-ROUND   
-        JSR     GETCHRB      ; Key pressed is returned in AccA
+ROUND   JSR     STR
+        JSR     CHKWD        ; Check for win/draw
+        LDAB    #$FF         ; Look at the status coming back - $FF is a draw
+        CMPB    WDSTAT
+        BEQ     .JDRAW   
+        JSR     RSTR
+        BRA     .START
+.JDRAW  JMP     DRAW
+.START  JSR     GETCHRB      ; Key pressed is returned in AccA
         CMPA    ESCCHR       ; ESCape character
         BNE     .RNXT        ; Continue testing for keystrokes
         JMP     DONE         ; Exit back to the start screen
@@ -223,7 +233,8 @@ ROUND
         STAA    CURSX
         BRA     .AROUND   
 
-.AROUND JSR     GTCHRAT         ; Store character under where cursor will be in CHARAT
+.AROUND
+        JSR     GTCHRAT         ; Store character under where cursor will be in CHARAT
         LDAA    CURSOR
         STAA    XYCHA
         LDAA    CURSX

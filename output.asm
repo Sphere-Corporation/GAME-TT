@@ -188,8 +188,8 @@ PUTPCE
         BNE     XPUTPCE ; If so, exit
         
         ; END OF CODE THAT CHECKS FOR FREE SPACE
-.TMP        LDAA    TURN
-        
+.TMP    INC     PIECES  ; Increment the number of pieces on the board
+        LDAA    TURN
         BEQ     .DO0
 .DOX    JSR     .COMMON
         JSR     PRNTX           ; Print Cross at correct location
@@ -448,4 +448,20 @@ GTCHRAT         ; Store character at cursor position
         JSR     RSTR
         RTS
 
+;===============================================================================================
+; DRAW: Game is a draw
+; 
+; 
+;
+DRAW                    ; Output Draw message and wait for a key
+        JSR     STR
+        JSR     HOME
+        LDX     #.DRWMSG
+        JSR     PUTMSG
+        JSR     GETCHRB
+        JSR     RSTR
+        RTS
+
+.DRWMSG    .AZ  /DRAW GAME - PRESS A KEY/
+        
 

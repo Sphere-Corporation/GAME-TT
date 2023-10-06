@@ -64,3 +64,22 @@ CVT     JSR     STR
 .DONE   STAB	POSIT   ; Store in pre-determined location
         JSR     RSTR
         RTS
+
+
+;===============================================================================================
+; CHKWD: Check if a win or a draw
+;
+
+; 
+; PIECES       : Number of pieces on the board
+
+CHKWD   
+        CLR     WDSTAT
+        LDAA    PIECES
+        CMPA    #9
+        BNE     .CHKW
+        COM     WDSTAT
+        RTS
+.CHKW  
+
+        RTS
