@@ -43,7 +43,8 @@ GCAXY   JSR     STR
 ; CURSX,CURSY : Contains the current location of the cursor (X,Y)
 ; POSIT       : Will contain the position number on the board
 
-CVT     LDAB	#1      ; Initialise AccB to store position
+CVT     JSR     STR
+        LDAB	#1      ; Initialise AccB to store position
         LDAA    CURSX
         CMPA    #16
         BNE     .COL2
@@ -61,4 +62,5 @@ CVT     LDAB	#1      ; Initialise AccB to store position
         ADDB    #6
 
 .DONE   STAB	POSIT   ; Store in pre-determined location
+        JSR     RSTR
         RTS

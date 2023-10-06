@@ -2,7 +2,7 @@
         .TF ttt.exe,BIN         ; OUTPUT FILE TO TARGET.BIN IN BINARY FORMAT
         .OR $0200               ; START OF ASSEMBLY ADDRESS
         .LI OFF                 ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
-
+        .SF symbols.sym
 ; Assembled with sbasm3 (https://www.sbprojects.net/sbasm/)
 ; All directives are specific to sbasm3, and may need to be changed for other assemblers
 
@@ -60,7 +60,7 @@ CURSY   .DA     #9
 INITCUR .DA     #5      ; Cursor space position
 
 ; Board Layout
-IBOARD   .AZ    /---------/      ; Initial content for the board i.e. all spaces
+IBOARD   .AZ    /---------/      ;$0236 ; Initial content for the board i.e. all spaces
 PIECE    .AS     #5              ; Initial square number
 POSIT    .AS     #0              ; Position of the current cursor on the board
 ;
@@ -115,14 +115,13 @@ INIT
         LDAA    #1          ; Cross's turn first
         STAA    TURN        ; Initialise.....
         
-        ;LDAA    #0          ; Show Game title (and how to get help)
-        ;STAA    SHOWHLP
-        CLR     SHOWHLP         ; FIX for ISSUE#2
+        ; Show Game title (and how to get help)
+
+        CLR     SHOWHLP        
 
         ; Reset IBOARD here from LBOARD
-                            ; AccA STILL haz a zero in it
-        ;LDAA    #0
-        CLRA    ; FIX for ISSUE#2
+                
+        CLRA    
         LDAB    DASH
         LDX     #IBOARD
 .RILP   STAB    0,X
@@ -148,7 +147,6 @@ INIT
 GLOOP                        ; Main Game Loop
 
 ROUND   
-
         JSR     GETCHRB      ; Key pressed is returned in AccA
         CMPA    ESCCHR       ; ESCape character
         BNE     .RNXT        ; Continue testing for keystrokes
@@ -231,6 +229,8 @@ ROUND
         LDAA    CURSX
         LDAB    CURSY     
         JSR     PRTXY           ; Cursor's moved to the correct location
+        JSR     CVT          ; Get position on the board
+
 
 .AGAIN  JMP     ROUND
 

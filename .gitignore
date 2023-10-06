@@ -8,3 +8,5 @@ ttt.exe.js
 *.WAV
 
 .DS_Store
+
+symbols.sym
