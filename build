@@ -1,7 +1,17 @@
+
+#!/bin/bash
+# Set default build value
 BUILD=`date +"%Y%m%d-%T" `
+
+while getopts ":b:" option; do
+   case $option in
+      b) # Get Build Number
+         BUILD=$OPTARG;;
+   esac
+done
 echo ".BUILD   .AZ  /         BUILD:$BUILD /" > build.asm
 sbasm ttt.asm;
-python3 ./CONVERT/cas.py --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader 
+./CONVERT/convertEXE --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader 
 mv ttt.exe OUTPUT
 mv ttt.exe.js OUTPUT
 mv *.wav OUTPUT
