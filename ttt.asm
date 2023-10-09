@@ -188,9 +188,15 @@ ROUND   JSR     STR
 .INST   JSR     INSTR
         BRA     .AROUND
 
-.ENT    ;JSR     CVT      ; convert cursor position to the position on the board
+.ENT    JSR     CVT      ; convert cursor position to the position on the board
                          ; Position is now in POSIT
         
+        JSR     CHOCC    ; Check for occupation of the square
+        LDAA    #$FF
+        CMPA    SPCOCC   ; Check if space is occupied
+        BEQ     .AGAIN ; No piece is required.
+
+
         JSR     PUTPCE   ; Determine which piece to place in CURSX/CURSY
         BRA     .AROUND
 

@@ -168,8 +168,6 @@ PRTXY   JSR     STR
 ; POSIT       : Contains the "square number" being targetted  
 
 PUTPCE  
-        ;JSR     CHOCC    ; Check for occupation of the square
-
 
         INC     PIECES  ; Increment the number of pieces on the board
         LDAA    TURN
@@ -463,12 +461,17 @@ CHOCC   JSR     STR
         CLRB
         LDX     #IBOARD
 
-.CHLP   CMPA    POSIT
+  
+
+.CHLP   INCA
+        CMPA    POSIT
         BEQ     .DONE
         INX
-        INCA
+        
         BRA     .CHLP
 .DONE
+
+        
 .CP     LDAA    0,X
         CMPA    DASH   ; If there's a dash then the place is free
         BEQ     .FREE
