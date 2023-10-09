@@ -168,27 +168,8 @@ PRTXY   JSR     STR
 ; POSIT       : Contains the "square number" being targetted  
 
 PUTPCE  
-        BRA     .TMP    ; TEMPORARILIY JUM AROUND THIS SECTION
-        ; Check to see if the square is occupied first
-        LDAA    POSIT
-        LDX     IBOARD
-.PPEL   
-        
-        BEQ     .PPXL
-        INX     
-        DECA
-        BRA     .PPEL
-.PPXL   LDAA    0,X
 
-        STAA    XYCHA
-        LDAA    #4
-        LDAB    #4
-        JSR     PRTXY
-        CMPA    DASH
-        BNE     XPUTPCE ; If so, exit
-        
-        ; END OF CODE THAT CHECKS FOR FREE SPACE
-.TMP    INC     PIECES  ; Increment the number of pieces on the board
+        INC     PIECES  ; Increment the number of pieces on the board
         LDAA    TURN
         BEQ     .DO0
 .DOX    JSR     .COMMON
@@ -463,5 +444,41 @@ DRAW                    ; Output Draw message and wait for a key
         RTS
 
 .DRWMSG    .AZ  /DRAW GAME - PRESS A KEY/
+        
+
+;===============================================================================================
+; CHOCC: Check to see if square is occupied
+; 
+; POSIT  : Contains the square number
+; IBOARD : Contains the pieces of the board
+;
+; SPCOCC : 0 if is free, 1 if it's occupied.
+
+CHOCC   JSR     STR
+        CLR     SPCOCC   ; Assume space is free
+
+        CLRA
+        CLRB
+        LDX     #IBOARD
+
+  
+
+.CHLP   INCA
+        CMPA    POSIT
+        BEQ     .DONE
+        INX
+        
+        BRA     .CHLP
+.DONE
+
+        
+.CP     LDAA    0,X
+        CMPA    DASH   ; If there's a dash then the place is free
+        BEQ     .FREE
+        COMB             ; Compliment A if the space is occupied
+.FREE   STAB    SPCOCC
+        JSR     RSTR
+        RTS
+
         
 

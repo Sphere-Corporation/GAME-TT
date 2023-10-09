@@ -74,6 +74,7 @@ POSIT    .AS     #0              ; Position of the current cursor on the board
 
 PIECES  .DA     #0      ; Number of pieces placed on the board
 WDSTAT  .DA     #0      ; Win/Draw status
+SPCOCC  .DA     #0      ; Space Occupied ? 0 = No, 1 = Yes
 ; Constants
 ZERO    .AS     #0                 ; Constant for zero
 
@@ -189,6 +190,13 @@ ROUND   JSR     STR
 
 .ENT    JSR     CVT      ; convert cursor position to the position on the board
                          ; Position is now in POSIT
+        
+        JSR     CHOCC    ; Check for occupation of the square
+        LDAA    #$FF
+        CMPA    SPCOCC   ; Check if space is occupied
+        BEQ     .AGAIN ; No piece is required.
+
+
         JSR     PUTPCE   ; Determine which piece to place in CURSX/CURSY
         BRA     .AROUND
 
