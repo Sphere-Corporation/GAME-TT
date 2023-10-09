@@ -73,8 +73,26 @@ CVT     JSR     STR
 ; 
 ; PIECES       : Number of pieces on the board
 
-CHKWD   
-        CLR     WDSTAT
+CHKWD             
+
+        LDX #IBOARD
+        LDAA    3
+        JSR ADDTOX
+.CHKWN                   ; Check for a draw if a win hasnt been detected.
+; UNDER CONSTRUCTION
+;        LDAA    #1
+;        LDX     #IBOARD
+;
+;.CHLP   INCA
+;        CMPA    POSIT
+;        BEQ     .DONE
+;        INX
+;        
+;        BRA     .CHLP
+;.DONE
+; UNDER CONSTRUCTION
+
+.CHKDR  CLR     WDSTAT
         LDAA    PIECES
         CMPA    #9
         BNE     .CHKW
@@ -83,3 +101,24 @@ CHKWD
 .CHKW  
 
         RTS
+
+
+;===============================================================================================
+; ADDTOX: Add a number to the X(Index) Register
+;
+
+; 
+; X     : Current value of Index register
+; AccA  : AccA number to add
+;
+; On exit, X= Initial X + AccA
+
+ADDTOX  STAB    SCRATCHB
+        CLRB            ; Set AccB to zero
+.ROUND  CBA
+        BEQ     .DONE
+        INCB
+        INX
+        BRA     .ROUND
+        LDAB    SCRATCHB
+.DONE   RTS

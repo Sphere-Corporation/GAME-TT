@@ -443,7 +443,7 @@ DRAW                    ; Output Draw message and wait for a key
         JSR     RSTR
         RTS
 
-.DRWMSG    .AZ  /DRAW GAME - PRESS A KEY/
+.DRWMSG    .AZ  /      DRAW GAME - PRESS A KEY  /
         
 
 ;===============================================================================================
