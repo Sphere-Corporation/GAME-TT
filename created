@@ -1,7 +1,17 @@
+#!/bin/bash
+# Set default build value
 BUILD=`date +"%Y%m%d-%T" `
-echo ".BUILD   .AZ  /         BUILD:$BUILD /" > build.asm
+while getopts ":b:" option; do
+   case $option in
+      b) # Get Build Number
+         BUILD=$OPTARG;;
+   esac
+done
+
+
+echo ".BUILD   .AZ  /BUILD:$BUILD/" > build.asm
 ../../SOFTWARE/asm/sbasm3/sbasm ttt.asm;
-python3 CONVERT/cas.py --input ttt.exe --prefix OX --base 0200 --title "OXO" --noheader  --cassette OXO
+./CONVERT/convertEXE --input ttt.exe --prefix OX --base 0200 --title "OXO" --noheader  --cassette OXO
 rm build.asm
 cp ../../SOFTWARE/site/devsite/cassette_temp.js ../../SOFTWARE/site/devsite/cassette.js
 cat ttt.exe.js >> ../../SOFTWARE/site/devsite/cassette.js
