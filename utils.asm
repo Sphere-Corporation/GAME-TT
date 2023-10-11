@@ -113,12 +113,12 @@ CHKWD
 ;
 ; On exit, X= Initial X + AccA
 
-ADDTOX  STAB    SCRATCHB
+ADDTOX  STAB    SCRTCHB
         CLRB            ; Set AccB to zero
 .ROUND  CBA
         BEQ     .DONE
         INCB
         INX
         BRA     .ROUND
-        LDAB    SCRATCHB
+        LDAB    SCRTCHB
 .DONE   RTS
