@@ -17,6 +17,7 @@ SCRTCHB  .DA     1,1            ; Space for AccB
 SCRTCHX  .DA     1,1            ; Space for X register
 TURN     .DA     1              ; 0 for nought's turn, 1 for cross's turn
 SHOWHLP  .DA     1              ; 0 for no help, 1 for help
+PCE      .DA     #$FF           ; Piece to check for a win
 
 ; Board Cursor position (+co-ordinates)
 CURSX   .DA     #16
@@ -99,9 +100,13 @@ ROUND   JSR     STR
         LDAB    #$FF         ; Look at the status coming back - $FF is a draw
         CMPB    WDSTAT
         BEQ     .JDRAW   
+        LDAB    #1           ; a 1 indicates a Win
+        CMPB    WDSTAT
+        BEQ     .JWIN
         JSR     RSTR
         BRA     .START
 .JDRAW  JMP     DRAW
+.JWIN   JMP     WIN
 .START  JSR     GETCHRB      ; Key pressed is returned in AccA
         CMPA    ESCCHR       ; ESCape character
         BNE     .RNXT        ; Continue testing for keystrokes

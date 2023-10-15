@@ -60,3 +60,6 @@ SPLSH2  .AZ    /     (C) ANDREW SHAPTON 2023     /  ; Text for the splash screen
 MSGAGN  .AZ    /           PRESS A KEY/             ;
         
         .IN build                                   ; Include dynamic Build information
+
+
+WINLN   .AZ     /  WINS!-PRESS A KEY FOR NEW GAME /

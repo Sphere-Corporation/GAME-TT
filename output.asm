@@ -155,14 +155,14 @@ PUTPCE
         LDAA    TURN
         BEQ     .DO0
 .DOX    JSR     .COMMON
+
         JSR     PRNTX           ; Print Cross at correct location
 
         JSR     .OXOD           ; Pop it in the board matrix
         LDAA    CROSS
-        
         STAA    0,X
         CLRA    TURN
-
+        LDAA    CROSS
         LDAA    DISPLX
         LDAB    DISPLY
         JSR     PRNTB           ; Remove old symbol
@@ -181,12 +181,15 @@ PUTPCE
         RTS
 
 .DO0    JSR     .COMMON
+
         JSR     PRNTO           ; Print Nought at correct location
         JSR     .OXOD
         LDAA    NOUGHT
         STAA    0,X
         LDAA    #1
         STAA    TURN
+        LDAA    NOUGHT
+        
         LDAA    DISPLO
         LDAB    DISPLY
         JSR     PRNTB           ; Remove old symbol
@@ -237,7 +240,7 @@ PRNTO   JSR     STR           ; Store A/B/X
         STAA    XYCHA
         LDAA    SCRTCHA
         JSR     PRTXY
-        LDAA    NOUGHT
+        LDAA    NOUGHT  
         STAA    XYCHA
         LDAA    SCRTCHA
         DECA
@@ -425,9 +428,6 @@ DRAW                    ; Output Draw message and wait for a key
         JSR     RSTR
         RTS
 
-
-        
-
 ;===============================================================================================
 ; CHOCC: Check to see if square is occupied
 ; 
@@ -460,4 +460,27 @@ CHOCC   JSR     STR
         RTS
 
         
+
+;===============================================================================================
+; WINMSG: Show Win message
+;
+; 
+
+WIN     JSR     STR
+        LDAA    TURN      ; See who has won
+        CMPA    #1       ; O's has wom
+        BEQ     .N
+        LDAA    CROSS
+        BRA     .STRMSG
+.N      LDAA    NOUGHT
+          
+.STRMSG LDX     #WINLN
+        STAA    0,X 
+        
+.DOMSG  JSR     HOME
+        LDX     #WINLN
+        JSR     PUTMSG
+        JSR     GETCHRB
+        JSR     RSTR
+.XWNMSG RTS
 
