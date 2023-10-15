@@ -28,7 +28,7 @@
 ## Status
 This game is still under development. Not all features have been implemented.
 
-For an up-to-date list of tasks yet to complete, look at the [TODO file](./TODO.md) and the [Issues](https://github.com/Sphere-Corporation/GAME-TT/issues).
+For an up-to-date list of tasks yet to complete, look at the [Issues](https://github.com/Sphere-Corporation/GAME-TT/issues) and engage with the community with the [Discussions](https://github.com/Sphere-Corporation/GAME-TT/discussions/20)area.
 
 ## Installation and Requirements
 
