@@ -73,13 +73,175 @@ CVT     JSR     STR
 ; 
 ; PIECES       : Number of pieces on the board
 
-CHKWD   
-        CLR     WDSTAT
+CHKWD             
+        ; If TURN = 1, then check O's else check X's
+        ; Note that this is the reverse of what is usual, since the pieces
+        ; are inverted to determine who's turn it is before this check is done.
+        LDAA    TURN
+        BEQ     .XS 
+        LDAA    NOUGHT
+        STAA    PCE 
+        BRA     .CHK
+.XS     LDAA    CROSS
+        STAA    PCE
+
+        ; Now the piece to check for is known - start the check of winning combinations
+        ; Check top row
+.CHK    LDX     #IBOARD
+        LDAA    0,X
+        CMPA    PCE
+        BNE     .MIDDLE
+
+        LDAA    1,X
+        CMPA    PCE
+        BNE     .MIDDLE
+        
+        LDAA    2,X
+        CMPA    PCE
+        BNE     .MIDDLE
+
+        JMP     .WIN 
+.MIDDLE
+        LDAA    3,X
+        CMPA    PCE
+        BNE     .BOTTOM
+
+        LDAA    4,X
+        CMPA    PCE
+        BNE     .BOTTOM
+        
+        LDAA    5,X
+        CMPA    PCE
+        BNE     .BOTTOM
+
+        JMP     .WIN 
+
+.BOTTOM 
+        LDAA    6,X
+        CMPA    PCE
+        BNE     .LEFT
+
+        LDAA    7,X
+        CMPA    PCE
+        BNE     .LEFT
+        
+        LDAA    8,X
+        CMPA    PCE
+        BNE     .LEFT
+
+        JMP     .WIN 
+.LEFT
+        LDAA    0,X
+        CMPA    PCE
+        BNE     .MID
+
+        LDAA    3,X
+        CMPA    PCE
+        BNE     .MID
+        
+        LDAA    6,X
+        CMPA    PCE
+        BNE     .MID
+
+        JMP     .WIN 
+
+.MID   
+        LDAA    1,X
+        CMPA    PCE
+        BNE     .RIGHT
+
+        LDAA    4,X
+        CMPA    PCE
+        BNE     .RIGHT
+        
+        LDAA    7,X
+        CMPA    PCE
+        BNE     .RIGHT
+
+        JMP     .WIN 
+
+.RIGHT
+        LDAA    2,X
+        CMPA    PCE
+        BNE     .DIAG1
+
+        LDAA    5,X
+        CMPA    PCE
+        BNE     .DIAG1
+        
+        LDAA    8,X
+        CMPA    PCE
+        BNE     .DIAG1
+
+        JMP     .WIN 
+
+.DIAG1
+        LDAA    0,X
+        CMPA    PCE
+        BNE     .DIAG2
+
+        LDAA    4,X
+        CMPA    PCE
+        BNE     .DIAG2
+        
+        LDAA    8,X
+        CMPA    PCE
+        BNE     .DIAG2
+
+        JMP     .WIN  
+
+.DIAG2
+        LDAA    2,X
+        CMPA    PCE
+        BNE     .CHKDR
+
+        LDAA    4,X
+        CMPA    PCE
+        BNE     .CHKDR
+        
+        LDAA    6,X
+        CMPA    PCE
+        BNE     .CHKDR
+
+        JMP     .WIN        
+; END OF CONSTRUCTION
+
+
+
+; Check for a draw if a win hasnt been detected.
+.CHKDR  CLR     WDSTAT
         LDAA    PIECES
         CMPA    #9
-        BNE     .CHKW
+        BNE     .X
         COM     WDSTAT
+        BRA     .X
+.WIN
+        CLR     WDSTAT    
+        INC     WDSTAT    ; WDSTAT = 1 indicates a win 
+        
+.X        
         RTS
-.CHKW  
+  
 
-        RTS
+        
+
+
+;===============================================================================================
+; ADDTOX: Add a number to the X(Index) Register
+;
+
+; 
+; X     : Current value of Index register
+; AccA  : AccA number to add
+;
+; On exit, X= Initial X + AccA
+
+ADDTOX  STAB    SCRTCHB
+        CLRB            ; Set AccB to zero
+.ROUND  CBA
+        BEQ     .DONE
+        INCB
+        INX
+        BRA     .ROUND
+        LDAB    SCRTCHB
+.DONE   RTS

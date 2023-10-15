@@ -9,7 +9,7 @@ while getopts ":b:" option; do
    esac
 done
 
-echo ".BUILD   .AZ  /         BUILD:$BUILD /" > build.asm
+echo "BUILD   .AZ  /      BUILD:$BUILD /" > build.asm
 ../../SOFTWARE/asm/sbasm3/sbasm ttt.asm;
 ./CONVERT/convertEXE --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader  --cassette OXO
 rm build.asm

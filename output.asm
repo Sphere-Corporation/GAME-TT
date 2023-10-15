@@ -10,28 +10,21 @@ SPLASH  JSR     STR
         JSR     CLS        ; Clear the screen and output two lines of banner
         LDAB    #2         ; Produce 2 blank lines
         JSR     MULTCR
-        LDX     #.SPLSH1   ; Output the Title of the program
+        LDX     #SPLSH1   ; Output the Title of the program
         JSR     PUTMSG
         LDAB    #8         ; Produce 8 blank lines
         JSR     MULTCR
-        LDX     #.SPLSH2   ; Then the copyright message
+        LDX     #SPLSH2   ; Then the copyright message
         JSR     PUTMSG
-        LDX     #.BUILD    ; Display Build information
+        LDX     #BUILD    ; Display Build information
         JSR     PUTMSG
         LDAB    #3         ; Produce 2 blank lines
         JSR     MULTCR
-        LDX     #.MSGAGN   ; ... and wait for a keypress
+        LDX     #MSGAGN   ; ... and wait for a keypress
         JSR     PUTMSG
         JSR     RSTR
 .FINAL  RTS
 
-; Static messages for the subroutine
-;
-.SPLSH1  .AZ  /     == NOUGHTS & CROSSES ==/
-.SPLSH2  .AZ  /     (C) ANDREW SHAPTON 2023/
-.MSGAGN  .AZ  /          PRESS ANY KEY/
-        
-        .IN build            ; Include dynamic Build information
 
 ;===============================================================================================
 ; PUTMSG: Prints a zero-terminated message  
@@ -83,11 +76,6 @@ MLTCHR
 
 
 MULTCR  JSR     STR           ; Store A/B/X
-        ;LDAA    #$0D
-        ;JSR     MLTCHR
-        ;JSR     RSTR
-        ;RTS
-
 .AGAIN  DECB
         BEQ     .OUT
         STAB    .MCRB
@@ -108,14 +96,13 @@ CRLF    JSR     STR           ; Store A/B/X
         JSR     RSTR          ; Restore X/B/X
 .FINAL  RTS
 
-
 ;===============================================================================================
 ; BOARD: Display the board and set the cursor to the centre square
 
 BOARD   JSR     CLS        ; Clear the screen ready to show board
         LDAB    #15
 
-.LOOP1  LDX     #.BLINEV    ; Display top set of vertical lines of the play area
+.LOOP1  LDX     #BLINEV    ; Display top set of vertical lines of the play area
         DECB
         JSR     CRLF
         CMPB    #1
@@ -126,25 +113,20 @@ BOARD   JSR     CLS        ; Clear the screen ready to show board
         BEQ     .HORIZ
         JSR     PUTMSG
         BRA     .LOOP1
-.HORIZ  LDX     #.BLINEH 
+.HORIZ  LDX     #BLINEH 
         JSR     PUTMSG
         BRA     .LOOP1
 .EXIT1  JSR     PUTMSG      ; Output the final vertical line
         LDAA    SPACE       ; Use an " " character
         LDAB    #12         ; Print it 12 times
         JSR     MLTCHR
-        LDX     #.HLPMSG    ; Output the Help message
+        LDX     #HLPMSG    ; Output the Help message
         JSR     PUTMSG
         LDAB    DISPLY ; Y-coordinate for O- and X-piece display
         LDAA    DISPLX ; X-coordinate for X-piece display
         JSR     PRNTX  ; Print a large X-piece
 .FINAL  RTS
 
-
-; Text to be used as part of the board 
-.BLINEV  .AZ  /             !     !/
-.BLINEH  .AZ  /        -----+-----+-----/
-.HLPMSG  .AZ  /H-HELP       !     !/
 ;===============================================================================================
 ; PRTXY: Prints a given char at co-ordinates (X,Y) on the screen (0,0) is top left
 ;
@@ -173,14 +155,14 @@ PUTPCE
         LDAA    TURN
         BEQ     .DO0
 .DOX    JSR     .COMMON
+
         JSR     PRNTX           ; Print Cross at correct location
 
         JSR     .OXOD           ; Pop it in the board matrix
         LDAA    CROSS
-        
         STAA    0,X
         CLRA    TURN
-
+        LDAA    CROSS
         LDAA    DISPLX
         LDAB    DISPLY
         JSR     PRNTB           ; Remove old symbol
@@ -199,12 +181,15 @@ PUTPCE
         RTS
 
 .DO0    JSR     .COMMON
+
         JSR     PRNTO           ; Print Nought at correct location
         JSR     .OXOD
         LDAA    NOUGHT
         STAA    0,X
         LDAA    #1
         STAA    TURN
+        LDAA    NOUGHT
+        
         LDAA    DISPLO
         LDAB    DISPLY
         JSR     PRNTB           ; Remove old symbol
@@ -255,7 +240,7 @@ PRNTO   JSR     STR           ; Store A/B/X
         STAA    XYCHA
         LDAA    SCRTCHA
         JSR     PRTXY
-        LDAA    NOUGHT
+        LDAA    NOUGHT  
         STAA    XYCHA
         LDAA    SCRTCHA
         DECA
@@ -373,7 +358,7 @@ INSTR   JSR     STR
         BEQ     .NOHELP
         CLRA
         STAA    SHOWHLP
-        LDX     #.INSLN
+        LDX     #INSLN
         BRA     .SHOW
 .NOHELP LDAA    #1
         STAA    SHOWHLP
@@ -385,7 +370,7 @@ INSTR   JSR     STR
         JSR     RSTR
 .XINSTR RTS
 
-.INSLN   .AZ  /ARROWS-MOVE,ENT-PLACE,ESC-RESET/
+
 
 
 ;===============================================================================================
@@ -437,14 +422,11 @@ GTCHRAT         ; Store character at cursor position
 DRAW                    ; Output Draw message and wait for a key
         JSR     STR
         JSR     HOME
-        LDX     #.DRWMSG
+        LDX     #DRWMSG
         JSR     PUTMSG
         JSR     GETCHRB
         JSR     RSTR
         RTS
-
-.DRWMSG    .AZ  /DRAW GAME - PRESS A KEY/
-        
 
 ;===============================================================================================
 ; CHOCC: Check to see if square is occupied
@@ -461,13 +443,10 @@ CHOCC   JSR     STR
         CLRB
         LDX     #IBOARD
 
-  
-
 .CHLP   INCA
         CMPA    POSIT
         BEQ     .DONE
-        INX
-        
+        INX        
         BRA     .CHLP
 .DONE
 
@@ -481,4 +460,27 @@ CHOCC   JSR     STR
         RTS
 
         
+
+;===============================================================================================
+; WINMSG: Show Win message
+;
+; 
+
+WIN     JSR     STR
+        LDAA    TURN      ; See who has won
+        CMPA    #1       ; O's has wom
+        BEQ     .N
+        LDAA    CROSS
+        BRA     .STRMSG
+.N      LDAA    NOUGHT
+          
+.STRMSG LDX     #WINLN
+        STAA    0,X 
+        
+.DOMSG  JSR     HOME
+        LDX     #WINLN
+        JSR     PUTMSG
+        JSR     GETCHRB
+        JSR     RSTR
+.XWNMSG RTS
 
