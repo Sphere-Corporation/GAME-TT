@@ -20,23 +20,6 @@ RSTR    LDAA    SCRTCHA
         RTS
 
 ;===============================================================================================
-; GCAXY: Gets the current given character at co-ordinates (X,Y) on the screen (0,0) is top left
-;
-; A Accumulator contains the X coordinate
-; B Accumulator contains the Y coordinate
-
-; CHARAT contains the character on Return
-
-CHARAT  .DA     1,1       ; Storage for character at (X,Y)
-GCAXY   JSR     STR
-        JSR     CURXY   ; Move the cursor to the correct location
-        LDAA    0,X     ; Get character from screen
-        STAA    CHARAT  ; Store character
-        JSR     RSTR
-        RTS
-
-
-;===============================================================================================
 ; CVT: Convert (X,Y) coordinates into a position on the board
 ;
 
@@ -222,26 +205,66 @@ CHKWD
 .X        
         RTS
   
+;===============================================================================================
+; CHOCC: Check to see if square is occupied
+; 
+; POSIT  : Contains the square number
+; IBOARD : Contains the pieces of the board
+;
+; SPCOCC : 0 if is free, 1 if it's occupied.
 
-        
+CHOCC   JSR     STR
+        CLR     SPCOCC   ; Assume space is free
+        CLRA
+        CLRB
+        LDX     #IBOARD
 
+.CHLP   INCA
+        CMPA    POSIT
+        BEQ     .DONE
+        INX        
+        BRA     .CHLP
+.DONE
+        LDAA    0,X
+        CMPA    DASH     ; If there's a dash then the place is free
+        BEQ     .FREE
+        COMB             ; Compliment A if the space is occupied
+.FREE   STAB    SPCOCC
+        JSR     RSTR
+        RTS
 
 ;===============================================================================================
-; ADDTOX: Add a number to the X(Index) Register
-;
-
+; INIT: Initialise a game
 ; 
-; X     : Current value of Index register
-; AccA  : AccA number to add
-;
-; On exit, X= Initial X + AccA
 
-ADDTOX  STAB    SCRTCHB
-        CLRB            ; Set AccB to zero
-.ROUND  CBA
-        BEQ     .DONE
-        INCB
+INIT    
+        LDAA    SPACE           ; Initial "CHARAT" value
+        STAA    CHARAT
+
+        LDAA    #1              ; Cross's turn first
+        STAA    TURN            ; 
+
+                                ; Show Game title (and how to get help)
+
+        CLR     SHOWHLP         ; Reset "show help"
+        CLR     PIECES          ; Reset number of pieces on the board
+                                
+        CLRA                    ; Reset IBOARD here from LBOARD
+        LDAB    DASH
+        LDX     #IBOARD
+.RILP   STAB    0,X
+        INCA
         INX
-        BRA     .ROUND
-        LDAB    SCRTCHB
-.DONE   RTS
+        CMPA     #9
+        BNE     .RILP
+
+        JSR     INSTR           ; Show Instructions if needed
+
+        LDAA    CURSOR          ; Cursor character value
+        STAA    XYCHA
+        LDAA    ICURSX
+        STAA    CURSX
+        LDAB    ICURSY
+        STAB    CURSY           ; Store initial cursor position
+        JSR     PRTXY           ; Print the cursor there
+        RTS

@@ -12,19 +12,18 @@ SPLASH  JSR     STR
         JSR     MULTCR
         LDX     #SPLSH1   ; Output the Title of the program
         JSR     PUTMSG
-        LDAB    #8         ; Produce 8 blank lines
+        LDAB    #8        ; Produce 8 blank lines
         JSR     MULTCR
         LDX     #SPLSH2   ; Then the copyright message
         JSR     PUTMSG
         LDX     #BUILD    ; Display Build information
         JSR     PUTMSG
-        LDAB    #3         ; Produce 2 blank lines
+        LDAB    #3        ; Produce 3 blank lines
         JSR     MULTCR
         LDX     #MSGAGN   ; ... and wait for a keypress
         JSR     PUTMSG
         JSR     RSTR
-.FINAL  RTS
-
+        RTS
 
 ;===============================================================================================
 ; PUTMSG: Prints a zero-terminated message  
@@ -45,11 +44,10 @@ PUTMSG  JSR     STR           ; Store A/B/X
         INX
         BRA     PUTMSG
 .PMEXT  JSR     RSTR          ; Restore A/B/X
-.FINAL  RTS
+        RTS
 
 ; Space to store the index register
 .MSGIDX  .DA     1,1           ; Reserved space for local temp variable
-
 
 ;===============================================================================================
 ; MLTCHR: Prints a given char (n) times
@@ -67,7 +65,6 @@ MLTCHR
         DECB
         BRA      .MLOOP
 .FINAL  RTS
-
 
 ;===============================================================================================
 ; MULTCR: Emits multiple blank lines
@@ -120,11 +117,11 @@ BOARD   JSR     CLS        ; Clear the screen ready to show board
         LDAA    SPACE       ; Use an " " character
         LDAB    #12         ; Print it 12 times
         JSR     MLTCHR
-        LDX     #HLPMSG    ; Output the Help message
-        JSR     PUTMSG
-        LDAB    DISPLY ; Y-coordinate for O- and X-piece display
-        LDAA    DISPLX ; X-coordinate for X-piece display
-        JSR     PRNTX  ; Print a large X-piece
+        LDX     #HLPMSG     ; Output the Help message
+        JSR     PUTMSG 
+        LDAB    DISPLY      ; Y-coordinate for O- and X-piece display
+        LDAA    DISPLX      ; X-coordinate for X-piece display
+        JSR     PRNTX       ; Print a large X-piece
 .FINAL  RTS
 
 ;===============================================================================================
@@ -200,7 +197,7 @@ PUTPCE
 
 .COMMON LDAA    CURSX
         LDAB    CURSY
-XPUTPCE RTS
+        RTS
 
 ;===============================================================================================
 ; PRNTX: Prints a cross  
@@ -224,7 +221,7 @@ PRNTX   JSR     STR           ; Store A/B/X
         JSR     PRTXY
         SUBA    #2
         JSR     PRTXY
-XPRNTX  JSR     RSTR          ; Restore X/B/X
+        JSR     RSTR          ; Restore X/B/X
         RTS
 
 ;===============================================================================================
@@ -232,7 +229,6 @@ XPRNTX  JSR     RSTR          ; Restore X/B/X
 ;
 ; A Accumulator contains the X coordinate of the centre of the nought
 ; B Accumulator contains the Y coordinate of the centre of the nought
-
 
 PRNTO   JSR     STR           ; Store A/B/X
         
@@ -260,7 +256,7 @@ PRNTO   JSR     STR           ; Store A/B/X
         JSR     PRTXY         ; Bottom left
         DECB
         JSR     PRTXY         ; Middle left
-XPRNTO  JSR     RSTR          ; Restore X/B/X
+        JSR     RSTR          ; Restore X/B/X
         RTS
 
 ;===============================================================================================
@@ -297,6 +293,7 @@ PRNTB   JSR     STR           ; Store A/B/X
         JSR     PRTXY
 .XPRNTB JSR     RSTR          ; Restore X/B/X
         RTS
+
 ;===============================================================================================
 ; CURXY: Move the cursor to co-ordinates (X,Y) on the screen (0,0) is top left
 ;
@@ -346,9 +343,8 @@ TOX     LDAB    XCRD
         BRA     .XAGAIN
 XCURXY  RTS
 
-
 ;===============================================================================================
-; INSTR: Show line of instructions
+; INSTR: Show lines of instructions
 ;
 ; 
 
@@ -363,15 +359,12 @@ INSTR   JSR     STR
 .NOHELP LDAA    #1
         STAA    SHOWHLP
         LDAA    SPACE        ; Use a " " character
-        LDAB    #31          ; Print it $31 times
+        LDAB    #39          ; Print it 39 times
         JSR     MLTCHR
         BRA     .XINSTR
 .SHOW   JSR     PUTMSG
         JSR     RSTR
 .XINSTR RTS
-
-
-
 
 ;===============================================================================================
 ; CLS: Clear the screen (make sure cursor starts of top left first)
@@ -397,28 +390,11 @@ RSTCHA
         RTS
         
 ;===============================================================================================
-; GTCHRAT: Get the character at the cursor position stored as below
-; 
-; CURSX Accumulator contains the X coordinate
-; CURSY Accumulator contains the Y coordinate
-;
-; CHARAT Contains the character at the supplied coordinates (on exit)
-;
-GTCHRAT         ; Store character at cursor position
-        JSR     STR
-        LDAA    CURSX
-        LDAB    CURSY
-        JSR     CURXY   ; ensure pointing at the current cursor position
-        LDAA    0,X
-        STAA    CHARAT
-        JSR     RSTR
-        RTS
-
-;===============================================================================================
 ; DRAW: Game is a draw
 ; 
 ; 
 ;
+
 DRAW                    ; Output Draw message and wait for a key
         JSR     STR
         JSR     HOME
@@ -429,58 +405,24 @@ DRAW                    ; Output Draw message and wait for a key
         RTS
 
 ;===============================================================================================
-; CHOCC: Check to see if square is occupied
-; 
-; POSIT  : Contains the square number
-; IBOARD : Contains the pieces of the board
-;
-; SPCOCC : 0 if is free, 1 if it's occupied.
-
-CHOCC   JSR     STR
-        CLR     SPCOCC   ; Assume space is free
-
-        CLRA
-        CLRB
-        LDX     #IBOARD
-
-.CHLP   INCA
-        CMPA    POSIT
-        BEQ     .DONE
-        INX        
-        BRA     .CHLP
-.DONE
-
-        
-.CP     LDAA    0,X
-        CMPA    DASH   ; If there's a dash then the place is free
-        BEQ     .FREE
-        COMB             ; Compliment A if the space is occupied
-.FREE   STAB    SPCOCC
-        JSR     RSTR
-        RTS
-
-        
-
-;===============================================================================================
 ; WINMSG: Show Win message
 ;
-; 
+; TURN: 0 = nought has won
+;       1 = cross has won
 
 WIN     JSR     STR
-        LDAA    TURN      ; See who has won
+        LDAA    TURN     ; See who has won
         CMPA    #1       ; O's has wom
         BEQ     .N
-        LDAA    CROSS
+        LDAA    CROSS    ; Pop cross symbol into AccA
         BRA     .STRMSG
-.N      LDAA    NOUGHT
+.N      LDAA    NOUGHT   ; Pop nought symbol into AccA
           
 .STRMSG LDX     #WINLN
-        STAA    0,X 
-        
-.DOMSG  JSR     HOME
+        STAA    0,X      ; Store appropriate symbol into first character of win message
+        JSR     HOME
         LDX     #WINLN
-        JSR     PUTMSG
-        JSR     GETCHRB
+        JSR     PUTMSG   ; Print the win line
+        JSR     GETCHRB  ; Await a keypress
         JSR     RSTR
-.XWNMSG RTS
-
+        RTS

@@ -1,0 +1,28 @@
+; Program Variables
+SCRTCHA  .DA     1,1            ; Space for AccA
+SCRTCHB  .DA     1,1            ; Space for AccB
+SCRTCHX  .DA     1,1            ; Space for X register
+TURN     .DA     1              ; 0 for nought's turn, 1 for cross's turn
+SHOWHLP  .DA     1              ; 0 for no help, 1 for help
+PCE      .DA     #$FF           ; Piece to check for a win
+
+; Board Cursor position (+co-ordinates)
+CURSX   .DA     #16
+CURSY   .DA     #9
+
+; Board Layout
+IBOARD   .AZ    /---------/     ; Initial content for the board i.e. all spaces
+PIECE    .AS     #5             ; Initial square number
+POSIT    .AS     #0             ; Position of the current cursor on the board
+;
+;               1  |  2  |  3
+;             -----+-----+-----
+;               4  |  5  |  6
+;             -----+-----+-----
+;               7  |  8  |  9
+;
+;    Starting position is ALWAYS #5 (Centre)
+
+PIECES  .DA     #0              ; Number of pieces placed on the board
+WDSTAT  .DA     #0              ; Win/Draw status
+SPCOCC  .DA     #0              ; Space Occupied ? 0 = No, 1 = Yes

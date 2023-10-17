@@ -2,7 +2,6 @@
 
 HOME    .EQU     $FC37          ; Cursor to top left
 CLEAR   .EQU     $FC3D          ; Clear screen contents
-GETCHR  .EQU     $FC4A          ; Input character (no echo)
 PUTCHR  .EQU     $FCBC          ; Print character at cursor
 KBDPIA  .EQU     $F040          ; Address of PIA for KBD/2 (Only supports KBD/2)
 
@@ -35,21 +34,16 @@ WASDW   .AS     #$57            ; W key (WASD) - Up
 ; Board Initial Cursor Positions
 ICURSX   .AS     #16
 ICURSY   .AS     #9
-CURCHR   .AS     #32
-IPIECE   .AS     #5
-LBOARD   .AZ    /---------/
+IPIECE   .AS     #5             
+LBOARD   .AZ    /---------/     ; Storage for pieces on board
 
 DISPLY   .AS     #13            ; Y-coordinate for O- and X-piece display
 DISPLX   .AS     #29            ; X-coordinate for X-piece display
 DISPLO   .AS     #3             ; X-coordinate for O-piece display
 
-
-; Constants
-ZERO    .AS     #0              ; Constant for zero
-
 ; Strings
 DRWMSG  .AZ     /      DRAW GAME - PRESS A KEY  /   ; Game is a draw
-INSLN   .AZ     /ARROWS-MOVE,ENT-PLACE,ESC-RESET/   ; Instructions line
+INSLN   .AZ     /ARROWS-MOVE,ENT-PLACE,ESC-RESET  WASD/ ; Instructions line 
 
 BLINEV  .AZ    /             !     !/               ;
 BLINEH  .AZ    /        -----+-----+-----/          ; Text to be used as part of the board 
@@ -58,8 +52,9 @@ HLPMSG  .AZ    /H-HELP       !     !/               ;
 SPLSH1  .AZ    /     == NOUGHTS & CROSSES ==/       ; 
 SPLSH2  .AZ    /     (C) ANDREW SHAPTON 2023     /  ; Text for the splash screen
 MSGAGN  .AZ    /           PRESS A KEY/             ;
-        
+
+WINLN   .AZ     /  WINS!-PRESS A KEY FOR NEW GAME /
+
         .IN build                                   ; Include dynamic Build information
 
 
-WINLN   .AZ     /  WINS!-PRESS A KEY FOR NEW GAME /

@@ -7,39 +7,6 @@
 ; Assembled with sbasm3 (https://www.sbprojects.net/sbasm/)
 ; All directives are specific to sbasm3, and may need to be changed for other assemblers
 
-        BRA     START   ;       Go to the start of the program - skip the variables
-
-
-
-; Program Variables
-SCRTCHA  .DA     1,1            ; Space for AccA
-SCRTCHB  .DA     1,1            ; Space for AccB
-SCRTCHX  .DA     1,1            ; Space for X register
-TURN     .DA     1              ; 0 for nought's turn, 1 for cross's turn
-SHOWHLP  .DA     1              ; 0 for no help, 1 for help
-PCE      .DA     #$FF           ; Piece to check for a win
-
-; Board Cursor position (+co-ordinates)
-CURSX   .DA     #16
-CURSY   .DA     #9
-INITCUR .DA     #5              ; Cursor space position
-
-; Board Layout
-IBOARD   .AZ    /---------/     ;$0236 ; Initial content for the board i.e. all spaces
-PIECE    .AS     #5             ; Initial square number
-POSIT    .AS     #0             ; Position of the current cursor on the board
-;
-;               1  |  2  |  3
-;             -----+-----+-----
-;               4  |  5  |  6
-;             -----+-----+-----
-;               7  |  8  |  9
-;
-;    Starting position is ALWAYS #5 (Centre)
-
-PIECES  .DA     #0              ; Number of pieces placed on the board
-WDSTAT  .DA     #0              ; Win/Draw status
-SPCOCC  .DA     #0              ; Space Occupied ? 0 = No, 1 = Yes
 
 ; START: Main entry point
 ;
@@ -54,44 +21,10 @@ START   LDS     #$1FF           ; Stack below program
         BRA     START           ; Go again
 
 ; Subroutines
-        .IN input               ; Include input-related Subroutines
         .IN output              ; Include output-related Subroutines
         .IN utils               ; Include utilities
+        .IN library             ; Include library routines
         
-INIT    
-        LDAA    SPACE           ; Initial "CHARAT" value
-        STAA    CHARAT
-
-        LDAA    #1              ; Cross's turn first
-        STAA    TURN            ; 
-
-                                ; Show Game title (and how to get help)
-
-        CLR     SHOWHLP         ; Reset "show help"
-        CLR     PIECES          ; Reset number of pieces on the board
-
-                                ; Reset IBOARD here from LBOARD
-                
-        CLRA                    ; CAN WE REUSE AN "ADD TO IDX REGISTER" FUNCTION?
-        LDAB    DASH
-        LDX     #IBOARD
-.RILP   STAB    0,X
-        INCA
-        INX
-        CMPA     #9
-        BNE     .RILP
-
-        JSR     INSTR
-
-        LDAA    CURSOR      ; Cursor character value
-        STAA    XYCHA
-        LDAA    ICURSX
-        STAA    CURSX
-        LDAB    ICURSY
-        STAB    CURSY       ; Store initial cursor position
-        JSR     PRTXY       ; Print the cursor there
-        RTS
-
 
 GLOOP                        ; Main Game Loop
 
@@ -187,7 +120,7 @@ ROUND   JSR     STR
         
         ; Restore character in CHARAT in place before moving cursor onward
         LDAA    CURSX
-        SUBA    #6          ; Cursor position already in AccA/AccB, so move left
+        SUBA    #6               ; Cursor position already in AccA/AccB, so move left
         STAA    CURSX
         BRA     .AROUND   
 
@@ -198,14 +131,14 @@ ROUND   JSR     STR
         LDAA    CURSX
         LDAB    CURSY     
         JSR     PRTXY           ; Cursor's moved to the correct location
-        JSR     CVT          ; Get position on the board
+        JSR     CVT             ; Get position on the board
 
 .AGAIN  JMP     ROUND
 
-DONE    RTS                 ; Exit Game Loop subroutine
+DONE    RTS                     ; Exit Game Loop subroutine
 
 ; Constants and Variables
-        .IN constants       ; Include constants
-
+        .IN constants           ; Include constants
+        .IN variables           ; Include variables for the program
 END
 
