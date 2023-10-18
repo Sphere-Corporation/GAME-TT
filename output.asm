@@ -80,7 +80,7 @@ MULTCR  JSR     STR           ; Store A/B/X
         LDAB    .MCRB
         BRA     .AGAIN
 .OUT    JSR     RSTR         ; Restore X/B/X
-.FINAL  RTS
+        RTS
 
 .MCRB  .DA     1              ; Scratch store for AccB
 
@@ -91,7 +91,7 @@ CRLF    JSR     STR           ; Store A/B/X
         LDAA    #$0D
         JSR     PUTCHR        ; Output a CR at the current cursor position
         JSR     RSTR          ; Restore X/B/X
-.FINAL  RTS
+        RTS
 
 ;===============================================================================================
 ; BOARD: Display the board and set the cursor to the centre square
@@ -122,7 +122,7 @@ BOARD   JSR     CLS        ; Clear the screen ready to show board
         LDAB    DISPLY      ; Y-coordinate for O- and X-piece display
         LDAA    DISPLX      ; X-coordinate for X-piece display
         JSR     PRNTX       ; Print a large X-piece
-.FINAL  RTS
+        RTS
 
 ;===============================================================================================
 ; PRTXY: Prints a given char at co-ordinates (X,Y) on the screen (0,0) is top left
@@ -291,7 +291,7 @@ PRNTB   JSR     STR           ; Store A/B/X
         JSR     PRTXY         ; Middle left
         DECB
         JSR     PRTXY
-.XPRNTB JSR     RSTR          ; Restore X/B/X
+        JSR     RSTR          ; Restore X/B/X
         RTS
 
 ;===============================================================================================
@@ -349,7 +349,8 @@ XCURXY  RTS
 ; 
 
 INSTR   JSR     STR
-        JSR     HOME
+        JSR     RSTCHA       ; Restore character previously at cursor position
+        JSR     HOME         ; Ensure that printing will occur at (0,0)
         LDAA    SHOWHLP
         BEQ     .NOHELP
         CLRA
@@ -359,7 +360,7 @@ INSTR   JSR     STR
 .NOHELP LDAA    #1
         STAA    SHOWHLP
         LDAA    SPACE        ; Use a " " character
-        LDAB    #39          ; Print it 39 times
+        LDAB    #39          ; Print it 39 times to erase "Help" text
         JSR     MLTCHR
         BRA     .XINSTR
 .SHOW   JSR     PUTMSG
@@ -377,9 +378,8 @@ CLS     JSR     HOME    ; Move cursor to top left
 ;===============================================================================================
 ; RSTCHA: Restore the character at the current cursor position
 ; 
-; A Accumulator contains the X coordinate
-; B Accumulator contains the Y coordinate
-;
+; CHARAT: Contains the character to restore
+
 RSTCHA
         JSR     STR
         LDAA    CHARAT
@@ -391,8 +391,6 @@ RSTCHA
         
 ;===============================================================================================
 ; DRAW: Game is a draw
-; 
-; 
 ;
 
 DRAW                    ; Output Draw message and wait for a key

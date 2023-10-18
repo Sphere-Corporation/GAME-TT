@@ -249,7 +249,7 @@ INIT
         CLR     SHOWHLP         ; Reset "show help"
         CLR     PIECES          ; Reset number of pieces on the board
                                 
-        CLRA                    ; Reset IBOARD here from LBOARD
+        CLRA                    ; Reset IBOARD to all dashes
         LDAB    DASH
         LDX     #IBOARD
 .RILP   STAB    0,X
