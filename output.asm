@@ -16,6 +16,7 @@ SPLASH  JSR     STR
         JSR     MULTCR
         LDX     #SPLSH2   ; Then the copyright message
         JSR     PUTMSG
+        JSR     CRLF      ; Display a blank line
         LDX     #BUILD    ; Display Build information
         JSR     PUTMSG
         LDAB    #3        ; Produce 3 blank lines

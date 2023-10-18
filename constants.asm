@@ -48,9 +48,9 @@ BLINEV  .AZ    /             !     !/                   ;
 BLINEH  .AZ    /        -----+-----+-----/              ; Text to be used as part of the board 
 HLPMSG  .AZ    /H-HELP       !     !/                   ;
 
-SPLSH1  .AZ    /     == NOUGHTS & CROSSES ==/           ; 
-SPLSH2  .AZ    /     (C) ANDREW SHAPTON 2023/           ; Text for the splash screen
-MSGAGN  .AZ    /           PRESS A KEY/                 ;
+SPLSH1  .AZ    /    == NOUGHTS & CROSSES ==/            ; 
+SPLSH2  .AZ    /    (C) ANDREW SHAPTON 2023/            ; Text for the splash screen
+MSGAGN  .AZ    /          PRESS A KEY/                  ;
 
 WINLN   .AZ     /  WINS!-PRESS A KEY FOR NEW GAME      /
 

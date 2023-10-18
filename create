@@ -9,7 +9,14 @@ while getopts ":b:" option; do
    esac
 done
 
-echo "BUILD   .AZ  /      BUILD:$BUILD /" > build.asm
+V="VERSION:$BUILD"
+LENGTH=${#V}
+let SPC=(32-$LENGTH)/2
+P=`printf "BUILD   .AZ  /"`
+Q=`printf '%0.s!' $(seq 1 $SPC) | tr "!" " "`
+FULLINE="$P$Q$V/"
+echo "$FULLINE" > build.asm
+
 ../../SOFTWARE/asm/sbasm3/sbasm ttt.asm;
 ./CONVERT/convertEXE --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader  --cassette OXO
 rm build.asm
