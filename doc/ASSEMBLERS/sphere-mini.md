@@ -1,7 +1,7 @@
 
 |Platforms|Assembler|Link
 |-|-|-|
-|<img src="../images/sphere.png" width="24">|Sphere-1 Mini-Assembler|[Binary](https://sphere.computer/firmware/pds-v3n.bin)|
+|<img src="../../images/sphere.png" width="24">|Sphere-1 Mini-Assembler|[Binary](https://sphere.computer/firmware/pds-v3n.bin)|
 
 |<b>Directive<b>|<b>Description|Example|Notes|
 |-|-|-|-|

@@ -1,7 +1,7 @@
 
 |Platforms|Assembler|Link
 |-|-|-|
-|<img src="../images/internet.png" width="24">|ASM-80/6800|[Homepage](https://www.asm80.com/onepage/asm6800.html)|
+|<img src="../../images/internet.png" width="24">|ASM-80/6800|[Homepage](https://www.asm80.com/onepage/asm6800.html)|
 
 |<b>Directive<b>|<b>Description|Example|Notes|
 |-|-|-|-|

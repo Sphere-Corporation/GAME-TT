@@ -16,7 +16,7 @@ Q=`printf '%0.s!' $(seq 1 $SPC) | tr "!" " "`
 FULLINE="$P$Q$V/"
 echo "$FULLINE" > build.asm
 ../../SOFTWARE/asm/sbasm3/sbasm ttt.asm;
-./CONVERT/convertEXE --input ttt.exe --prefix OX --base 0200 --title "OXO" --noheader  --cassette OXO
+../TOOLS/CONVERT/convertEXE --input ttt.exe --prefix OX --base 0200 --title "OXO" --noheader  --cassette OXO
 rm build.asm
 cp ../../SOFTWARE/site/devsite/cassette_temp.js ../../SOFTWARE/site/devsite/cassette.js
 cat ttt.exe.js >> ../../SOFTWARE/site/devsite/cassette.js

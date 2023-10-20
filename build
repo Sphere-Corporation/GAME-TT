@@ -19,7 +19,7 @@ FULLINE="$P$Q$V/"
 echo "$FULLINE" > build.asm
 
 sbasm ttt.asm;
-./CONVERT/convertEXE --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader 
+../TOOLS/CONVERT/convertEXE --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader 
 mv ttt.exe OUTPUT
 mv ttt.exe.js OUTPUT
 mv *.wav OUTPUT

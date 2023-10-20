@@ -10,7 +10,7 @@ This compatibility chart is designed to assist developers in adapting this code 
 
 Other directives may be added over time as they are used.
 
-|<b>Directive<b>|<b>[SB Assembler v3](./ASSEMBLERS/sbasm3.md)</b>|<b>[ASM-80](./ASSEMBLERS/asm80.md)</b>|[Sphere-1 Mini-assembler](./ASSEMBLERS/sphere-mini.md)|
+|<b>Directive<b>|<b>[SB Assembler v3](sbasm3.md)</b>|<b>[ASM-80](asm80.md)</b>|[Sphere-1 Mini-assembler](sphere-mini.md)|
 |-|-|-|-|
 |Target Processor Type<pre>|.CR| .CPU|
 |Target file name and format|.TF||

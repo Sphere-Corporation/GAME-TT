@@ -1,7 +1,7 @@
 
 |Platforms|Assembler|Link
 |-|-|-|
-|<img src="../images/macos.png" width="24"><img src="../images/windows.png" width="24"><img src="../images/linux.png" width="24">|SB Assembler v3|[Homepage](https://www.sbprojects.net/sbasm/)|
+|<img src="../../images/macos.png" width="24"><img src="../../images/windows.png" width="24"><img src="../../images/linux.png" width="24">|SB Assembler v3|[Homepage](https://www.sbprojects.net/sbasm/)|
 
 |<b>Directive<b>|<b>Description|Example|Notes|
 |-|-|-|-|
