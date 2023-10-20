@@ -9,9 +9,13 @@ BUILD=`date +"%Y%m%d-%T" `
 SBASM_DIR=
 CONVERTEXE_DIR=
 # Set location of SBASM (comment out if on search path)
-SBASM_DIR=../../SOFTWARE/asm/sbasm3/
+SBASM_DIR=../../../SOFTWARE/asm/sbasm3/
 # Set location of convertEXE (comment out if on search path)
 CONVERTEXE_DIR=../TOOLS/CONVERT/
+# Set location of output files (mandatory)
+OUTPUT_DIR=OUTPUT/
+# Set location of source files (mandatory)
+SRC_DIR=src/
 
 while getopts ":b:" option; do
    case $option in
@@ -20,17 +24,21 @@ while getopts ":b:" option; do
    esac
 done
 
+# Create output directory if it doesnt exist
+mkdir -p $OUTPUT_DIR
+
 V="VERSION:$BUILD"
 LENGTH=${#V}
 let SPC=(32-$LENGTH)/2
 P=`printf "BUILD   .AZ  /"`
 Q=`printf '%0.s!' $(seq 1 $SPC) | tr "!" " "`
 FULLINE="$P$Q$V/"
-echo "$FULLINE" > build.asm
-
-${SBASM_DIR}sbasm ttt.asm;
-${CONVERTEXE_DIR}convertEXE --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader 
-mv ttt.exe OUTPUT
-mv ttt.exe.js OUTPUT
-mv *.wav OUTPUT
-rm build.asm
+echo "$FULLINE" > ${SRC_DIR}build.asm
+cd $SRC_DIR
+${SBASM_DIR}sbasm ttt.asm
+cd -
+${CONVERTEXE_DIR}convertEXE --input ${SRC_DIR}ttt.exe --prefix TD --base 0200 --title "OXO" --noheader --cassette OXO
+mv ${SRC_DIR}ttt.exe $OUTPUT_DIR
+mv ${SRC_DIR}ttt.exe.js $OUTPUT_DIR
+mv *.wav $OUTPUT_DIR
+rm ${SRC_DIR}build.asm
