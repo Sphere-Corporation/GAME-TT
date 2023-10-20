@@ -2,6 +2,15 @@
 # Set default build value
 BUILD=`date +"%Y%m%d-%T" `
 
+# For all location environment variables, ensure to use a trailing slash
+# Set defaults for assembler and converter tools
+SBASM_DIR=
+CONVERTEXE_DIR=
+# Set location of SBASM (comment out if on search path)
+SBASM_DIR=../../SOFTWARE/asm/sbasm3/
+# Set location of convertEXE (comment out if on search path)
+CONVERTEXE_DIR=../TOOLS/CONVERT/
+
 while getopts ":b:" option; do
    case $option in
       b) # Get Build Number
@@ -17,8 +26,8 @@ Q=`printf '%0.s!' $(seq 1 $SPC) | tr "!" " "`
 FULLINE="$P$Q$V/"
 echo "$FULLINE" > build.asm
 
-../../SOFTWARE/asm/sbasm3/sbasm ttt.asm;
-../TOOLS/CONVERT/convertEXE --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader  --cassette OXO
+${SBASM_DIR}sbasm ttt.asm;
+${CONVERTEXE_DIR}convertEXE --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader  --cassette OXO
 rm build.asm
 cp ../../SOFTWARE/site/cass_temp.js ../../SOFTWARE/site/cassette.js
 cat ttt.exe.js >> ../../SOFTWARE/site/cassette.js
