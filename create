@@ -11,6 +11,7 @@ BUILD=`date +"%Y%m%d-%T" `
 # Set defaults for assembler and converter tools
 SBASM_DIR=
 CONVERTEXE_DIR=
+<<<<<<< HEAD
 OUTPUT_DIR=
 SRC_DIR=
 # Set location of SBASM (comment out if on search path)
@@ -21,6 +22,12 @@ CONVERTEXE_DIR=../TOOLS/CONVERT/
 OUTPUT_DIR=OUTPUT/
 # Set location of source files
 SRC_DIR=src/
+=======
+# Set location of SBASM (comment out if on search path)
+SBASM_DIR=../../SOFTWARE/asm/sbasm3/
+# Set location of convertEXE (comment out if on search path)
+CONVERTEXE_DIR=../TOOLS/CONVERT/
+>>>>>>> main
 
 while getopts ":b:" option; do
    case $option in
@@ -35,12 +42,20 @@ let SPC=(32-$LENGTH)/2
 P=`printf "BUILD   .AZ  /"`
 Q=`printf '%0.s!' $(seq 1 $SPC) | tr "!" " "`
 FULLINE="$P$Q$V/"
+<<<<<<< HEAD
 echo "$FULLINE" > ${SRC_DIR}build.asm
 cd $SRC_DIR
 ${SBASM_DIR}sbasm ttt.asm;
 cd -
 ${CONVERTEXE_DIR}convertEXE --input ${SRC_DIR}ttt.exe --prefix TD --base 0200 --title "OXO" --noheader  --cassette OXO
 rm ${SRC_DIR}build.asm
+=======
+echo "$FULLINE" > build.asm
+
+${SBASM_DIR}sbasm ttt.asm;
+${CONVERTEXE_DIR}convertEXE --input ttt.exe --prefix TD --base 0200 --title "OXO" --noheader  --cassette OXO
+rm build.asm
+>>>>>>> main
 cp ../../SOFTWARE/site/cass_temp.js ../../SOFTWARE/site/cassette.js
 cat ${SRC_DIR}ttt.exe.js >> ../../SOFTWARE/site/cassette.js
 mv ${SRC_DIR}ttt.exe $OUTPUT_DIR
