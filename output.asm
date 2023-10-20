@@ -27,74 +27,6 @@ SPLASH  JSR     STR
         RTS
 
 ;===============================================================================================
-; PUTMSG: Prints a zero-terminated message  
-;
-; X contains the start address of the message
-; Example:
-;    LDX     #MSG2
-;    JSR     PUTMSG
-;
-;    MSG2    .AZ  /Informational Message/
-
-PUTMSG  JSR     STR            ; Store A/B/X
-        LDAA    0, X
-        BEQ     .PMEXT
-        STX     .MSGIDX
-        JSR     PUTCHR
-        LDX     .MSGIDX
-        INX
-        BRA     PUTMSG
-.PMEXT  JSR     RSTR           ; Restore A/B/X
-        RTS
-
-; Space to store the index register
-.MSGIDX  .DA     1,1           ; Reserved space for local temp variable
-
-;===============================================================================================
-; MLTCHR: Prints a given char (n) times
-;
-; A Accumulator contains the character for multiple printings goes here.
-; B Accumulator contains the multiple (n)
-; Example:
-;
-;        LDAA    #$40          ; Use an "@" character
-;        LDAB    #$15          ; Print it $15 times
-;        JSR     MLTCHR        ; Call the routine
-MLTCHR
-.MLOOP  BEQ      .FINAL
-        JSR      PUTCHR
-        DECB
-        BRA      .MLOOP
-.FINAL  RTS
-
-;===============================================================================================
-; MULTCR: Emits multiple blank lines
-;
-; B Accumulator contains the number of blank lines to print
-
-
-MULTCR  JSR     STR            ; Store A/B/X
-.AGAIN  DECB
-        BEQ     .OUT
-        STAB    .MCRB
-        JSR     CRLF           ; Output a CR at the current cursor position
-        LDAB    .MCRB
-        BRA     .AGAIN
-.OUT    JSR     RSTR           ; Restore X/B/X
-        RTS
-
-.MCRB  .DA     1               ; Scratch store for AccB
-
-;===============================================================================================
-; CRLF: Emits a carriage return
-;
-CRLF    JSR     STR            ; Store A/B/X    
-        LDAA    #$0D
-        JSR     PUTCHR         ; Output a CR at the current cursor position
-        JSR     RSTR           ; Restore X/B/X
-        RTS
-
-;===============================================================================================
 ; BOARD: Display the board and set the cursor to the centre square
 
 BOARD   JSR     CLS            ; Clear the screen ready to show board
@@ -123,21 +55,6 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
         LDAA    DISPLX         ; X-coordinate for X-piece display
         JSR     PRNTX          ; Print a large X-piece
-        RTS
-
-;===============================================================================================
-; PRTXY: Prints a given char at co-ordinates (X,Y) on the screen (0,0) is top left
-;
-; A Accumulator contains the X coordinate
-; B Accumulator contains the Y coordinate
-; XYCHA contains the character to print
-
-XYCHA   .DA     #0             ; Storage for character to print
-PRTXY   JSR     STR
-        JSR     CURXY          ; Move the cursor to the correct loctation
-        LDAA    XYCHA          ; Load character into AccA
-        STAA    0,X            ; Send to screen
-        JSR     RSTR
         RTS
 
 ;===============================================================================================
@@ -232,7 +149,6 @@ PRNTX   JSR     STR            ; Store A/B/X
 ; B Accumulator contains the Y coordinate of the centre of the nought
 
 PRNTO   JSR     STR            ; Store A/B/X
-        
         LDAA    SPACE
         STAA    XYCHA
         LDAA    SCRTCHA
@@ -268,7 +184,7 @@ PRNTO   JSR     STR            ; Store A/B/X
 
 
 PRNTB   JSR     STR            ; Store A/B/X
-        STAA    SCRTCHA
+        ;STAA    SCRTCHA
         LDAA    SPACE
         STAA    XYCHA
         LDAA    SCRTCHA
@@ -295,53 +211,7 @@ PRNTB   JSR     STR            ; Store A/B/X
         JSR     RSTR           ; Restore X/B/X
         RTS
 
-;===============================================================================================
-; CURXY: Move the cursor to co-ordinates (X,Y) on the screen (0,0) is top left
-;
-; A Accumulator contains the X coordinate
-; B Accumulator contains the Y coordinate
 
-; Returns in the X register the correct cursor offset
-
-XCRD   .DA     $FF             ; Storage for X coordinate
-YCRD   .DA     $FF             ; Storage for Y coordinate
-
-; Logic:
-; Multiply the Y co-ordinate by 32 (line length) - repeatedly INX 32 times per line
-; Add the X co-ordinate to give offset
-; Memory location to store character = CSRPTR (CURSOR POINTER)
-
-CURXY   STAA    XCRD          ; Store AccA/AccB scratch locations
-        DECB                  ; BUT decrement Y co-ordinate to make it zero-based first
-        STAB    YCRD
-        JSR     HOME          ; Send CRSPTR to "Home" to register as (0,0)                        
-
-; Start incrementing the X index register
-        LDX     CSRPTR        ; Load current Cursor position (0,0) into X register
-
-.NXTLN  CLRA
-        LDAB    #32           ; Add 32 (1 line) to the X register
-         
-.YAGAIN BEQ     .OUTY
-        INX
-        DECB
-        BRA     .YAGAIN
-.OUTY        
-
-; Prepare for the next line by decrementing the Y coordinate until zero
-        LDAA    YCRD
-        DECA
-        BEQ     TOX
-        STAA    YCRD
-        BRA     .NXTLN
-
-; Add the X coordinate by decrementing the supplied X coordinate until zero
-TOX     LDAB    XCRD
-.XAGAIN BEQ     XCURXY
-        INX
-        DECB
-        BRA     .XAGAIN
-XCURXY  RTS
 
 ;===============================================================================================
 ; INSTR: Show lines of instructions
@@ -366,14 +236,6 @@ INSTR   JSR     STR
 .SHOW   JSR     PUTMSG
         JSR     RSTR
 .XINSTR RTS
-
-;===============================================================================================
-; CLS: Clear the screen (make sure cursor starts of top left first)
-;
-; 
-CLS     JSR     HOME           ; Move cursor to top left
-        JSR     CLEAR          ; Clear the screen
-        RTS
 
 ;===============================================================================================
 ; RSTCHA: Restore the character at the current cursor position

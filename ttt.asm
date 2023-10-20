@@ -23,7 +23,6 @@ START   LDS     #$1FF          ; Stack below program
         .IN utils              ; Include utilities
         .IN library            ; Include library routines
         
-
 GLOOP                          ; Main Game Loop
 
 ROUND   JSR     STR
