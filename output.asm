@@ -7,21 +7,21 @@
 ; SPLASH: Print Splash screen
 ;
 SPLASH  JSR     STR
-        JSR     CLS        ; Clear the screen and output two lines of banner
-        LDAB    #2         ; Produce 2 blank lines
+        JSR     CLS             ; Clear the screen and output two lines of banner
+        LDAB    #2              ; Produce 2 blank lines
         JSR     MULTCR
-        LDX     #SPLSH1   ; Output the Title of the program
+        LDX     #SPLSH1        ; Output the Title of the program
         JSR     PUTMSG
-        LDAB    #8        ; Produce 8 blank lines
+        LDAB    #8             ; Produce 8 blank lines
         JSR     MULTCR
-        LDX     #SPLSH2   ; Then the copyright message
+        LDX     #SPLSH2        ; Then the copyright message
         JSR     PUTMSG
-        JSR     CRLF      ; Display a blank line
-        LDX     #BUILD    ; Display Build information
+        JSR     CRLF           ; Display a blank line
+        LDX     #BUILD         ; Display Build information
         JSR     PUTMSG
-        LDAB    #3        ; Produce 3 blank lines
+        LDAB    #3             ; Produce 3 blank lines
         JSR     MULTCR
-        LDX     #MSGAGN   ; ... and wait for a keypress
+        LDX     #MSGAGN        ; ... and wait for a keypress
         JSR     PUTMSG
         JSR     RSTR
         RTS
@@ -36,7 +36,7 @@ SPLASH  JSR     STR
 ;
 ;    MSG2    .AZ  /Informational Message/
 
-PUTMSG  JSR     STR           ; Store A/B/X
+PUTMSG  JSR     STR            ; Store A/B/X
         LDAA    0, X
         BEQ     .PMEXT
         STX     .MSGIDX
@@ -44,7 +44,7 @@ PUTMSG  JSR     STR           ; Store A/B/X
         LDX     .MSGIDX
         INX
         BRA     PUTMSG
-.PMEXT  JSR     RSTR          ; Restore A/B/X
+.PMEXT  JSR     RSTR           ; Restore A/B/X
         RTS
 
 ; Space to store the index register
@@ -57,9 +57,9 @@ PUTMSG  JSR     STR           ; Store A/B/X
 ; B Accumulator contains the multiple (n)
 ; Example:
 ;
-;        LDAA    #$40           ; Use an "@" character
-;        LDAB    #$15           ; Print it $15 times
-;        JSR     MLTCHR         ; Call the routine
+;        LDAA    #$40          ; Use an "@" character
+;        LDAB    #$15          ; Print it $15 times
+;        JSR     MLTCHR        ; Call the routine
 MLTCHR
 .MLOOP  BEQ      .FINAL
         JSR      PUTCHR
@@ -73,34 +73,34 @@ MLTCHR
 ; B Accumulator contains the number of blank lines to print
 
 
-MULTCR  JSR     STR           ; Store A/B/X
+MULTCR  JSR     STR            ; Store A/B/X
 .AGAIN  DECB
         BEQ     .OUT
         STAB    .MCRB
-        JSR     CRLF          ; Output a CR at the current cursor position
+        JSR     CRLF           ; Output a CR at the current cursor position
         LDAB    .MCRB
         BRA     .AGAIN
-.OUT    JSR     RSTR         ; Restore X/B/X
+.OUT    JSR     RSTR           ; Restore X/B/X
         RTS
 
-.MCRB  .DA     1              ; Scratch store for AccB
+.MCRB  .DA     1               ; Scratch store for AccB
 
 ;===============================================================================================
 ; CRLF: Emits a carriage return
 ;
-CRLF    JSR     STR           ; Store A/B/X    
+CRLF    JSR     STR            ; Store A/B/X    
         LDAA    #$0D
-        JSR     PUTCHR        ; Output a CR at the current cursor position
-        JSR     RSTR          ; Restore X/B/X
+        JSR     PUTCHR         ; Output a CR at the current cursor position
+        JSR     RSTR           ; Restore X/B/X
         RTS
 
 ;===============================================================================================
 ; BOARD: Display the board and set the cursor to the centre square
 
-BOARD   JSR     CLS        ; Clear the screen ready to show board
+BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDAB    #15
 
-.LOOP1  LDX     #BLINEV    ; Display top set of vertical lines of the play area
+.LOOP1  LDX     #BLINEV        ; Display top set of vertical lines of the play area
         DECB
         JSR     CRLF
         CMPB    #1
@@ -114,15 +114,15 @@ BOARD   JSR     CLS        ; Clear the screen ready to show board
 .HORIZ  LDX     #BLINEH 
         JSR     PUTMSG
         BRA     .LOOP1
-.EXIT1  JSR     PUTMSG      ; Output the final vertical line
-        LDAA    SPACE       ; Use an " " character
-        LDAB    #12         ; Print it 12 times
+.EXIT1  JSR     PUTMSG         ; Output the final vertical line
+        LDAA    SPACE          ; Use an " " character
+        LDAB    #12            ; Print it 12 times
         JSR     MLTCHR
-        LDX     #HLPMSG     ; Output the Help message
+        LDX     #HLPMSG        ; Output the Help message
         JSR     PUTMSG 
-        LDAB    DISPLY      ; Y-coordinate for O- and X-piece display
-        LDAA    DISPLX      ; X-coordinate for X-piece display
-        JSR     PRNTX       ; Print a large X-piece
+        LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
+        LDAA    DISPLX         ; X-coordinate for X-piece display
+        JSR     PRNTX          ; Print a large X-piece
         RTS
 
 ;===============================================================================================
@@ -134,9 +134,9 @@ BOARD   JSR     CLS        ; Clear the screen ready to show board
 
 XYCHA   .DA     #0             ; Storage for character to print
 PRTXY   JSR     STR
-        JSR     CURXY   ; Move the cursor to the correct loctation
-        LDAA    XYCHA   ; Load character into AccA
-        STAA    0,X     ; Send to screen
+        JSR     CURXY          ; Move the cursor to the correct loctation
+        LDAA    XYCHA          ; Load character into AccA
+        STAA    0,X            ; Send to screen
         JSR     RSTR
         RTS
 
@@ -149,24 +149,24 @@ PRTXY   JSR     STR
 
 PUTPCE  
 
-        INC     PIECES  ; Increment the number of pieces on the board
+        INC     PIECES         ; Increment the number of pieces on the board
         LDAA    TURN
         BEQ     .DO0
 .DOX    JSR     .COMMON
 
-        JSR     PRNTX           ; Print Cross at correct location
+        JSR     PRNTX          ; Print Cross at correct location
 
-        JSR     .OXOD           ; Pop it in the board matrix
+        JSR     .OXOD          ; Pop it in the board matrix
         LDAA    CROSS
         STAA    0,X
         CLRA    TURN
         LDAA    CROSS
         LDAA    DISPLX
         LDAB    DISPLY
-        JSR     PRNTB           ; Remove old symbol
+        JSR     PRNTB          ; Remove old symbol
         LDAA    DISPLO
         LDAB    DISPLY        
-        JSR     PRNTO           ; Print large Nought
+        JSR     PRNTO          ; Print large Nought
         CLR     TURN     
         BRA     .COMMON
         
@@ -180,7 +180,7 @@ PUTPCE
 
 .DO0    JSR     .COMMON
 
-        JSR     PRNTO           ; Print Nought at correct location
+        JSR     PRNTO          ; Print Nought at correct location
         JSR     .OXOD
         LDAA    NOUGHT
         STAA    0,X
@@ -190,11 +190,11 @@ PUTPCE
         
         LDAA    DISPLO
         LDAB    DISPLY
-        JSR     PRNTB           ; Remove old symbol
+        JSR     PRNTB          ; Remove old symbol
         LDAA    DISPLX
         LDAB    DISPLY
-        JSR     PRNTX           ; Print large Cross
-                                ; Falls through to .COMMON
+        JSR     PRNTX          ; Print large Cross
+                               ; Falls through to .COMMON
 
 .COMMON LDAA    CURSX
         LDAB    CURSY
@@ -207,12 +207,12 @@ PUTPCE
 ; B Accumulator contains the Y coordinate of the centre of the cross
 
 
-PRNTX   JSR     STR           ; Store A/B/X
+PRNTX   JSR     STR            ; Store A/B/X
         LDAA    CROSS
-        STAA    CHARAT        ; Store piece to display
-        STAA    XYCHA         ; also store in "previous character"
+        STAA    CHARAT         ; Store piece to display
+        STAA    XYCHA          ; also store in "previous character"
         LDAA    SCRTCHA
-        JSR     PRTXY         ; Move cursor to centre of cross
+        JSR     PRTXY          ; Move cursor to centre of cross
         DECA
         DECB
         JSR     PRTXY
@@ -222,7 +222,7 @@ PRNTX   JSR     STR           ; Store A/B/X
         JSR     PRTXY
         SUBA    #2
         JSR     PRTXY
-        JSR     RSTR          ; Restore X/B/X
+        JSR     RSTR           ; Restore X/B/X
         RTS
 
 ;===============================================================================================
@@ -231,7 +231,7 @@ PRNTX   JSR     STR           ; Store A/B/X
 ; A Accumulator contains the X coordinate of the centre of the nought
 ; B Accumulator contains the Y coordinate of the centre of the nought
 
-PRNTO   JSR     STR           ; Store A/B/X
+PRNTO   JSR     STR            ; Store A/B/X
         
         LDAA    SPACE
         STAA    XYCHA
@@ -242,22 +242,22 @@ PRNTO   JSR     STR           ; Store A/B/X
         LDAA    SCRTCHA
         DECA
         DECB
-        JSR     PRTXY         ; Move cursor to TOP LEFT of the nought
+        JSR     PRTXY          ; Move cursor to TOP LEFT of the nought
         INCA
-        JSR     PRTXY         ; Top middle
+        JSR     PRTXY          ; Top middle
         INCA
-        JSR     PRTXY         ; Top right
+        JSR     PRTXY          ; Top right
         INCB
-        JSR     PRTXY         ; Middle right
+        JSR     PRTXY          ; Middle right
         INCB
-        JSR     PRTXY         ; Bottom right
+        JSR     PRTXY          ; Bottom right
         DECA
-        JSR     PRTXY         ; Bottom middle
+        JSR     PRTXY          ; Bottom middle
         DECA
-        JSR     PRTXY         ; Bottom left
+        JSR     PRTXY          ; Bottom left
         DECB
-        JSR     PRTXY         ; Middle left
-        JSR     RSTR          ; Restore X/B/X
+        JSR     PRTXY          ; Middle left
+        JSR     RSTR           ; Restore X/B/X
         RTS
 
 ;===============================================================================================
@@ -267,7 +267,7 @@ PRNTO   JSR     STR           ; Store A/B/X
 ; B Accumulator contains the Y coordinate of the centre of the space
 
 
-PRNTB   JSR     STR           ; Store A/B/X
+PRNTB   JSR     STR            ; Store A/B/X
         STAA    SCRTCHA
         LDAA    SPACE
         STAA    XYCHA
@@ -275,24 +275,24 @@ PRNTB   JSR     STR           ; Store A/B/X
         JSR     PRTXY
         DECA
         DECB
-        JSR     PRTXY         ; Move cursor to TOP LEFT of the square
+        JSR     PRTXY          ; Move cursor to TOP LEFT of the square
         INCA
-        JSR     PRTXY         ; Top middle
+        JSR     PRTXY          ; Top middle
         INCA
-        JSR     PRTXY         ; Top right
+        JSR     PRTXY          ; Top right
         INCB
-        JSR     PRTXY         ; Middle right
+        JSR     PRTXY          ; Middle right
         INCB
-        JSR     PRTXY         ; Bottom right
+        JSR     PRTXY          ; Bottom right
         DECA
-        JSR     PRTXY         ; Bottom middle
+        JSR     PRTXY          ; Bottom middle
         DECA
-        JSR     PRTXY         ; Bottom left
+        JSR     PRTXY          ; Bottom left
         DECB
-        JSR     PRTXY         ; Middle left
+        JSR     PRTXY          ; Middle left
         DECB
         JSR     PRTXY
-        JSR     RSTR          ; Restore X/B/X
+        JSR     RSTR           ; Restore X/B/X
         RTS
 
 ;===============================================================================================
@@ -303,25 +303,24 @@ PRNTB   JSR     STR           ; Store A/B/X
 
 ; Returns in the X register the correct cursor offset
 
-XCRD   .DA     $FF        ; Storage for X coordinate
-YCRD   .DA     $FF        ; Storage for Y coordinate
+XCRD   .DA     $FF             ; Storage for X coordinate
+YCRD   .DA     $FF             ; Storage for Y coordinate
 
 ; Logic:
 ; Multiply the Y co-ordinate by 32 (line length) - repeatedly INX 32 times per line
 ; Add the X co-ordinate to give offset
 ; Memory location to store character = CSRPTR (CURSOR POINTER)
 
-CURXY   STAA    XCRD    ; Store AccA/AccB scratch locations
-        DECB            ; BUT decrement Y co-ordinate to make it zero-based first
+CURXY   STAA    XCRD          ; Store AccA/AccB scratch locations
+        DECB                  ; BUT decrement Y co-ordinate to make it zero-based first
         STAB    YCRD
-        JSR     HOME    ; Send CRSPTR to "Home" to register as (0,0)                        
+        JSR     HOME          ; Send CRSPTR to "Home" to register as (0,0)                        
 
 ; Start incrementing the X index register
-        LDX     CSRPTR  ; Load current Cursor position (0,0) into X register
+        LDX     CSRPTR        ; Load current Cursor position (0,0) into X register
 
-; Add 32 (1 line) to the X register
 .NXTLN  CLRA
-        LDAB    #32
+        LDAB    #32           ; Add 32 (1 line) to the X register
          
 .YAGAIN BEQ     .OUTY
         INX
@@ -350,8 +349,8 @@ XCURXY  RTS
 ; 
 
 INSTR   JSR     STR
-        JSR     RSTCHA       ; Restore character previously at cursor position
-        JSR     HOME         ; Ensure that printing will occur at (0,0)
+        JSR     RSTCHA         ; Restore character previously at cursor position
+        JSR     HOME           ; Ensure that printing will occur at (0,0)
         LDAA    SHOWHLP
         BEQ     .NOHELP
         CLRA
@@ -360,8 +359,8 @@ INSTR   JSR     STR
         BRA     .SHOW
 .NOHELP LDAA    #1
         STAA    SHOWHLP
-        LDAA    SPACE        ; Use a " " character
-        LDAB    #39          ; Print it 39 times to erase "Help" text
+        LDAA    SPACE          ; Use a " " character
+        LDAB    #39            ; Print it 39 times to erase "Help" text
         JSR     MLTCHR
         BRA     .XINSTR
 .SHOW   JSR     PUTMSG
@@ -372,8 +371,8 @@ INSTR   JSR     STR
 ; CLS: Clear the screen (make sure cursor starts of top left first)
 ;
 ; 
-CLS     JSR     HOME    ; Move cursor to top left
-        JSR     CLEAR   ; Clear the screen
+CLS     JSR     HOME           ; Move cursor to top left
+        JSR     CLEAR          ; Clear the screen
         RTS
 
 ;===============================================================================================
@@ -394,7 +393,7 @@ RSTCHA
 ; DRAW: Game is a draw
 ;
 
-DRAW                    ; Output Draw message and wait for a key
+DRAW                           ; Output Draw message and wait for a key
         JSR     STR
         JSR     HOME
         LDX     #DRWMSG
@@ -410,18 +409,18 @@ DRAW                    ; Output Draw message and wait for a key
 ;       1 = cross has won
 
 WIN     JSR     STR
-        LDAA    TURN     ; See who has won
-        CMPA    #1       ; O's has wom
+        LDAA    TURN           ; See who has won
+        CMPA    #1             ; O's has won
         BEQ     .N
-        LDAA    CROSS    ; Pop cross symbol into AccA
+        LDAA    CROSS          ; Pop cross symbol into AccA
         BRA     .STRMSG
-.N      LDAA    NOUGHT   ; Pop nought symbol into AccA
+.N      LDAA    NOUGHT         ; Pop nought symbol into AccA
           
 .STRMSG LDX     #WINLN
-        STAA    0,X      ; Store appropriate symbol into first character of win message
+        STAA    0,X            ; Store appropriate symbol into first character of win message
         JSR     HOME
         LDX     #WINLN
-        JSR     PUTMSG   ; Print the win line
-        JSR     GETCHRB  ; Await a keypress
+        JSR     PUTMSG         ; Print the win line
+        JSR     GETCHRB        ; Await a keypress
         JSR     RSTR
         RTS

@@ -28,7 +28,7 @@
 ## Status
 This game is still under development. Not all features have been implemented.
 
-For an up-to-date list of tasks yet to complete, look at the [Issues](https://github.com/Sphere-Corporation/GAME-TT/issues) and engage with the community with the [Discussions](https://github.com/Sphere-Corporation/GAME-TT/discussions/20)area.
+For an up-to-date list of tasks yet to complete, look at the [Issues](https://github.com/Sphere-Corporation/GAME-TT/issues) and engage with the community with the [Discussions](https://github.com/Sphere-Corporation/GAME-TT/discussions/20) area.
 
 ## Installation and Requirements
 
@@ -45,7 +45,7 @@ The prerequisites for this are:
 
 Note that the assembler code is written to be compatible with the [SB-Assembler 3](https://www.sbprojects.net/sbasm/). 
 
-If you prefer to use your own/different assembler, please make the changes to the source file so you can assemble it, and add a section to the [ASSEMBLERS.md](ASSEMBLERS.md) file describing what changes you needed to do to ensure it works.
+If you prefer to use your own/different assembler, please make the changes to the source file so you can assemble it, and add a section to the [ASSEMBLERS.md](doc/ASSEMBLERS/ASSEMBLERS.md) file describing what changes you needed to do to ensure it works.
 
 Clone the repo from GitHub, then run the build script
 

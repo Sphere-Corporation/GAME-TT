@@ -17,15 +17,15 @@
 ;   RSTR
 ;   STR
 
-CHARAT  .DA     1,1     ; Storage for character at (X,Y)
+CHARAT  .DA     1,1            ; Storage for character at (X,Y)
 
 GTCHRAT             
         JSR     STR
         LDAA    CURSX
         LDAB    CURSY
-        JSR     CURXY   ; Ensure pointing at the current cursor position
-        LDAA    0,X     ; Get character from screen
-        STAA    CHARAT  ; Store character at cursor position
+        JSR     CURXY          ; Ensure pointing at the current cursor position
+        LDAA    0,X            ; Get character from screen
+        STAA    CHARAT         ; Store character at cursor position
         JSR     RSTR
         RTS
 
@@ -34,8 +34,8 @@ GTCHRAT
 ;     
 ; AccA contains the typed character
 ;  
-GETCHRB LDAA    #$40        ; Load a mask for CA2 flag.
-        BITA    KBDPIA+1    ; See if a character has been typed in.
-        BEQ     GETCHRB     ; Try again if a character hasn't been entered.
-        LDAA    KBDPIA      ; Load AccA with the typed character
+GETCHRB LDAA    #$40           ; Load a mask for CA2 flag.
+        BITA    KBDPIA+1       ; See if a character has been typed in.
+        BEQ     GETCHRB        ; Try again if a character hasn't been entered.
+        LDAA    KBDPIA         ; Load AccA with the typed character
         RTS                 

@@ -1,5 +1,5 @@
 ;
-; Small utilities used within larger programs
+; Small utilities used within the larger program
 ;
 
 
@@ -27,7 +27,7 @@ RSTR    LDAA    SCRTCHA
 ; POSIT       : Will contain the position number on the board
 
 CVT     JSR     STR
-        LDAB	#1      ; Initialise AccB to store position
+        LDAB	#1             ; Initialise AccB to store position
         LDAA    CURSX
         CMPA    #16
         BNE     .COL2
@@ -44,7 +44,7 @@ CVT     JSR     STR
         BNE     .DONE
         ADDB    #6
 
-.DONE   STAB	POSIT   ; Store in pre-determined location
+.DONE   STAB	POSIT          ; Store in pre-determined location
         JSR     RSTR
         RTS
 
@@ -68,128 +68,103 @@ CHKWD
 .XS     LDAA    CROSS
         STAA    PCE
 
-        ; Now the piece to check for is known - start the check of winning combinations
-        ; Check top row
+; Now the piece to check for is known - start the check of winning combinations        
+; Check top row
 .CHK    LDX     #IBOARD
         LDAA    0,X
         CMPA    PCE
         BNE     .MIDDLE
-
         LDAA    1,X
         CMPA    PCE
         BNE     .MIDDLE
-        
         LDAA    2,X
         CMPA    PCE
         BNE     .MIDDLE
-
         JMP     .WIN 
+; Check middle row
 .MIDDLE
         LDAA    3,X
         CMPA    PCE
         BNE     .BOTTOM
-
         LDAA    4,X
         CMPA    PCE
         BNE     .BOTTOM
-        
         LDAA    5,X
         CMPA    PCE
         BNE     .BOTTOM
-
         JMP     .WIN 
-
+; Check bottom row
 .BOTTOM 
         LDAA    6,X
         CMPA    PCE
         BNE     .LEFT
-
         LDAA    7,X
         CMPA    PCE
         BNE     .LEFT
-        
         LDAA    8,X
         CMPA    PCE
         BNE     .LEFT
-
         JMP     .WIN 
+; Check left column
 .LEFT
         LDAA    0,X
         CMPA    PCE
         BNE     .MID
-
         LDAA    3,X
         CMPA    PCE
         BNE     .MID
-        
         LDAA    6,X
         CMPA    PCE
         BNE     .MID
-
         JMP     .WIN 
-
+; Check middle column
 .MID   
         LDAA    1,X
         CMPA    PCE
         BNE     .RIGHT
-
         LDAA    4,X
         CMPA    PCE
         BNE     .RIGHT
-        
         LDAA    7,X
         CMPA    PCE
         BNE     .RIGHT
-
         JMP     .WIN 
-
+; Check right column
 .RIGHT
         LDAA    2,X
         CMPA    PCE
         BNE     .DIAG1
-
         LDAA    5,X
         CMPA    PCE
         BNE     .DIAG1
-        
         LDAA    8,X
         CMPA    PCE
         BNE     .DIAG1
-
         JMP     .WIN 
-
+; Check left-to-right diagonal
 .DIAG1
         LDAA    0,X
         CMPA    PCE
         BNE     .DIAG2
-
         LDAA    4,X
         CMPA    PCE
         BNE     .DIAG2
-        
         LDAA    8,X
         CMPA    PCE
         BNE     .DIAG2
-
         JMP     .WIN  
-
+; Check right-to-left diagonal
 .DIAG2
         LDAA    2,X
         CMPA    PCE
         BNE     .CHKDR
-
         LDAA    4,X
         CMPA    PCE
         BNE     .CHKDR
-        
         LDAA    6,X
         CMPA    PCE
         BNE     .CHKDR
-
         JMP     .WIN        
-; END OF CONSTRUCTION
-
-
 
 ; Check for a draw if a win hasnt been detected.
 .CHKDR  CLR     WDSTAT
@@ -200,7 +175,7 @@ CHKWD
         BRA     .X
 .WIN
         CLR     WDSTAT    
-        INC     WDSTAT    ; WDSTAT = 1 indicates a win 
+        INC     WDSTAT         ; WDSTAT = 1 indicates a win 
         
 .X        
         RTS
@@ -214,7 +189,7 @@ CHKWD
 ; SPCOCC : 0 if is free, 1 if it's occupied.
 
 CHOCC   JSR     STR
-        CLR     SPCOCC   ; Assume space is free
+        CLR     SPCOCC         ; Assume space is free
         CLRA
         CLRB
         LDX     #IBOARD
@@ -226,9 +201,9 @@ CHOCC   JSR     STR
         BRA     .CHLP
 .DONE
         LDAA    0,X
-        CMPA    DASH     ; If there's a dash then the place is free
+        CMPA    DASH           ; If there's a dash then the place is free
         BEQ     .FREE
-        COMB             ; Compliment A if the space is occupied
+        COMB                   ; Compliment A if the space is occupied
 .FREE   STAB    SPCOCC
         JSR     RSTR
         RTS
@@ -238,18 +213,18 @@ CHOCC   JSR     STR
 ; 
 
 INIT    
-        LDAA    SPACE           ; Initial "CHARAT" value
+        LDAA    SPACE          ; Initial "CHARAT" value
         STAA    CHARAT
 
-        LDAA    #1              ; Cross's turn first
-        STAA    TURN            ; 
+        LDAA    #1             ; Cross's turn first
+        STAA    TURN          
 
-                                ; Show Game title (and how to get help)
+                               ; Show Game title (and how to get help)
 
-        CLR     SHOWHLP         ; Reset "show help"
-        CLR     PIECES          ; Reset number of pieces on the board
+        CLR     SHOWHLP        ; Reset "show help"
+        CLR     PIECES         ; Reset number of pieces on the board
                                 
-        CLRA                    ; Reset IBOARD to all dashes
+        CLRA                   ; Reset IBOARD to all dashes
         LDAB    DASH
         LDX     #IBOARD
 .RILP   STAB    0,X
@@ -258,13 +233,13 @@ INIT
         CMPA     #9
         BNE     .RILP
 
-        JSR     INSTR           ; Show Instructions if needed
+        JSR     INSTR          ; Show Instructions if needed
 
-        LDAA    CURSOR          ; Cursor character value
+        LDAA    CURSOR         ; Cursor character value
         STAA    XYCHA
         LDAA    ICURSX
         STAA    CURSX
         LDAB    ICURSY
-        STAB    CURSY           ; Store initial cursor position
-        JSR     PRTXY           ; Print the cursor there
+        STAB    CURSY          ; Store initial cursor position
+        JSR     PRTXY          ; Print the cursor there
         RTS
