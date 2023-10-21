@@ -26,7 +26,7 @@
 
 
 ## Status
-This game is still under development. Not all features have been implemented.
+This game is a 1.0.0 release. There is a roadmap to other features.
 
 For an up-to-date list of tasks yet to complete, look at the [Issues](https://github.com/Sphere-Corporation/GAME-TT/issues) and engage with the community with the [Discussions](https://github.com/Sphere-Corporation/GAME-TT/discussions/20) area.
 
@@ -41,19 +41,27 @@ All of the methods below require a method of running the game in either a virtua
 ### Running from source
 
 The prerequisites for this are:
- -  An MC6800 assembler available on the search path
+ -  An MC6800 assembler available on the search path *
+ -  The [CONVERT tool](https://github.com/Sphere-Corporation/CONVERT) has been installed and is on the search path (follow the full instructions for its installation)
 
-Note that the assembler code is written to be compatible with the [SB-Assembler 3](https://www.sbprojects.net/sbasm/). 
+	Note that the assembler code is written to be compatible with the [SB-Assembler 3](https://www.sbprojects.net/sbasm/).
 
-If you prefer to use your own/different assembler, please make the changes to the source file so you can assemble it, and add a section to the [ASSEMBLERS.md](doc/ASSEMBLERS/ASSEMBLERS.md) file describing what changes you needed to do to ensure it works.
 
-Clone the repo from GitHub, then run the build script
+Clone the repo from GitHub, then run the build script:
 
 ```sh
 git clone https://github.com/Sphere-Corporation/GAME-TT.git`
 cd GAME-TT
 ./build
 ```
+
+### Different Assemblers
+If you prefer to use your own/different assembler, please make the changes to the source file so you can assemble it, and add a section to the [ASSEMBLERS.md](doc/ASSEMBLERS/ASSEMBLERS.md) file describing what changes you needed to do to ensure it works. If you do this, and you find that it would be beneficial to others, please submit a Pull Request and store the code in a directory named as follows:
+
+	`src_<assembler_name>`
+
+include a `README.md` file detailling any instructions that are pertinent to that assembler, such that anyone can understand how to assemble the code.
+
 ### In action!
 
 Early version of the game running on a Sphere-1.
