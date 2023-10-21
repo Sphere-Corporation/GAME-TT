@@ -1,20 +1,81 @@
----
-name: Feature request
-about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
-
----
-
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
-
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
-
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
-
-**Additional context**
-Add any other context or screenshots about the feature request here.
+name: Feature Request
+description: Suggest an improvement for this project
+title: "[Feature]: "
+labels: ["feature", "triage"]
+projects: ["GAME-TT"]
+assignees:
+  - alshapton
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to think about how this project can be improved
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Details
+      description: How can we get in touch with you if we need more info?
+      placeholder: ex. email@example.com
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: A clear and concise description of what the problem is. 
+      value: "I'm always frustrated when [...]"
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: What is the solution that you are proposing ?
+      placeholder: A clear and concise description of what you want to happen.
+      value: "The solution should be [...]"
+    validations:
+      required: true
+  - type: textarea
+    id: other
+    attributes:
+      label: Alternatives
+      description: Have you considered any other solutions ?
+      placeholder: A brief description of other solutions that you've thought about
+      value: "The other solutions I've considered are [...]"
+    validations:
+      required: false
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: What version of the software are you running?
+      options:
+        - 1.0.0
+        - 1.0.0-beta
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: sphere-version
+    attributes:
+      label: What platforms are you using ?
+      multiple: true
+      options:
+        - Virtual Sphere
+        - SPHERE-1 hardware
+        - Other
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/Sphere-Corporation/GAME-TT/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
