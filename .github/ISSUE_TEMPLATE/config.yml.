@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Issue
+    url: https://github.com/Sphere-Corporation/GAME-TT/blob/main/.github/ISSUE_TEMPLATE/bug_report.md
+    about: Please report issues here.
+  - name: Feature Request
+    url: https://github.com/Sphere-Corporation/GAME-TT/blob/main/.github/ISSUE_TEMPLATE/feature_request.md
+    about: Please request features here.
