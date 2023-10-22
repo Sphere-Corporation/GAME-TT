@@ -5,6 +5,7 @@
         .TF ttt.exe,BIN        ; OUTPUT FILE TO TARGET.BIN IN BINARY FORMAT
         .OR $0200              ; START OF ASSEMBLY ADDRESS
         .LI OFF                ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
+        .SF SYMBOLS.SYM
 
 ; START: Main entry point
 
@@ -12,8 +13,14 @@ START   LDS     #$1FF          ; Stack below program
                                ; MUST be first line of code
 
         JSR     SPLASH         ; Splash Screen
+        CLR     TURN
         JSR     GETCHRB        ; Wait for a keypress
-        JSR     BOARD          ; Display Board
+                               ; AccA contains the keypressed
+        CMPA    NOUGHT         ; What key did the user press ?
+        BEQ     .NOUGHT
+        INC     TURN           ; Cross's turn first
+        
+.NOUGHT JSR     BOARD          ; Display Board
         JSR     INIT           ; Initialise the game
         JSR     GLOOP          ; Main Loop
         BRA     START          ; Go again

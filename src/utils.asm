@@ -215,10 +215,6 @@ CHOCC   JSR     STR
 INIT    
         LDAA    SPACE          ; Initial "CHARAT" value
         STAA    CHARAT
-
-        LDAA    #1             ; Cross's turn first
-        STAA    TURN          
-
                                ; Show Game title (and how to get help)
 
         CLR     SHOWHLP        ; Reset "show help"
