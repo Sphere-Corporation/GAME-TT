@@ -21,8 +21,8 @@ SPLASH  JSR     STR
         JSR     PUTMSG
         LDAB    #3             ; Produce 3 blank lines
         JSR     MULTCR
-        LDX     #MSGAGN        ; ... and wait for a keypress
-        JSR     PUTMSG
+        LDX     #MSGAGN        
+        JSR     PUTMSG      ; ... and wait for a keypress
         JSR     RSTR
         RTS
 
@@ -51,8 +51,15 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDAB    #12            ; Print it 12 times
         JSR     MLTCHR
         LDX     #HLPMSG        ; Output the Help message
-        JSR     PUTMSG 
+        JSR     PUTMSG
+        LDAA    TURN
+        CMPA    #1
+        BEQ     .CROSS 
         LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
+        LDAA    DISPLO         ; X-coordinate for O-piece display
+        JSR     PRNTO          ; Print a large O-piece
+        RTS
+.CROSS  LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
         LDAA    DISPLX         ; X-coordinate for X-piece display
         JSR     PRNTX          ; Print a large X-piece
         RTS

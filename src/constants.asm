@@ -40,7 +40,8 @@ HLPMSG  .AZ    /H-HELP       !     !/                    ;
 
 SPLSH1  .AZ    /    == NOUGHTS & CROSSES ==/             ; 
 SPLSH2  .AZ    /    (C) ANDREW SHAPTON 2023/             ; Text for the splash screen
-MSGAGN  .AZ    /          PRESS A KEY/                   ;
+MSGAGN  .AZ    /TO START A GAME WITH "X",PRESS  ANY KEY OR "O" TO START WITH "O"/  ;
+
 
 WINLN   .AZ     /  WINS!-PRESS A KEY FOR NEW GAME      / ; Win line
 
