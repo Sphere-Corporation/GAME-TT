@@ -6,6 +6,7 @@
 ;===============================================================================================
 ; STR: Store A/B/X prior to a subroutine
 ;
+
 STR     STAA    SCRTCHA
         STAB    SCRTCHB
         STX     SCRTCHX
@@ -190,21 +191,21 @@ CHKWD
 
 CHOCC   JSR     STR
         CLR     SPCOCC         ; Assume space is free
-        CLRA
-        CLRB
-        LDX     #IBOARD
+        CLRA                   ; Clear AccA 
+        CLRB                   ; Clear AccB
+        LDX     #IBOARD        ; Load the start of the board
 
-.CHLP   INCA
-        CMPA    POSIT
+.CHLP   INCA                   ; Loop util the desired position is reached
+        CMPA    POSIT          ; Has the position been reached?
         BEQ     .DONE
         INX        
         BRA     .CHLP
 .DONE
-        LDAA    0,X
+        LDAA    0,X            ; Load the contents of this space into AccA
         CMPA    DASH           ; If there's a dash then the place is free
         BEQ     .FREE
-        COMB                   ; Compliment A if the space is occupied
-.FREE   STAB    SPCOCC
+        COMB                   ; Compliment B if the space is occupied
+.FREE   STAB    SPCOCC         ; Store result in SPOCC
         JSR     RSTR
         RTS
 

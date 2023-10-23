@@ -1,7 +1,7 @@
 ; Program Variables
-SCRTCHA  .DA     1,1           ; Space for AccA
-SCRTCHB  .DA     1,1           ; Space for AccB
-SCRTCHX  .DA     1,1           ; Space for X register
+SCRTCHA  .DA     1             ; Space for AccA
+SCRTCHB  .DA     1             ; Space for AccB
+SCRTCHX  .DA     1             ; Space for X register
 TURN     .DA     1             ; 0 for nought's turn, 1 for cross's turn
 SHOWHLP  .DA     1             ; 0 for no help, 1 for help
 PCE      .DA     #$FF          ; Piece to check for a win

@@ -29,7 +29,7 @@
 ;
 ;       N/A 
 
-CHARAT  .DA     1,1            ; Storage for character at (X,Y)
+CHARAT  .DA     1              ; Storage for character at (X,Y)
 
 GTCHRAT             
         JSR     STR            ; Store A/B/X
@@ -143,7 +143,7 @@ PUTMSG  JSR     STR            ; Store A/B/X
         RTS
 
 ; Space to store the index register
-.MSGIDX  .DA     1,1           ; Reserved space for local variable
+.MSGIDX  .DA     1             ; Reserved space for local variable
 ;===============================================================================================
 
 
