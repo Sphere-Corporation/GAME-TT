@@ -278,6 +278,14 @@ DRAW                           ; Output Draw message and wait for a key
 ;       1 = cross has won
 
 WIN     JSR     STR
+                               ; Blank out the large pieces on a win
+        LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
+        LDAA    DISPLO         ; X-coordinate for O-piece display
+        JSR     PRNTB          ; Print a blank over the nought symbol
+        LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
+        LDAA    DISPLX         ; X-coordinate for X-piece display
+        JSR     PRNTB          ; Print a blank over the cross symbol
+
         LDAA    TURN           ; See who has won
         CMPA    #1             ; O's has won
         BEQ     .N
