@@ -6,6 +6,33 @@
 ;===============================================================================================
 ; SPLASH: Print Splash screen
 ;
+; Entry:
+;       N/A
+;
+; Exit:
+;       N/A
+;  
+; External definitions:
+;
+;       BUILD           Label for the build information
+;       MSGAGN          Label for the "Press a key" lines
+;       SPLSH1          Label for the title of the program
+;       SPLSH2          Label for the copyright line
+;
+; Dependencies:
+;
+;       CLS
+;       CRLF
+;       MLTCHR
+;       PUTMSG
+;       RSTR
+;       STR
+;
+; Notes:
+;
+;       The "BUILD" label is inserted by an external command prior to assembling the code.
+;       It must contain a centred "VERSION: " literal, followed by the build or version number.
+
 SPLASH  JSR     STR
         JSR     CLS             ; Clear the screen and output two lines of banner
         LDAB    #2              ; Produce 2 blank lines
@@ -25,6 +52,8 @@ SPLASH  JSR     STR
         JSR     PUTMSG      ; ... and wait for a keypress
         JSR     RSTR
         RTS
+;===============================================================================================
+
 
 ;===============================================================================================
 ; BOARD: Display the initial board
@@ -60,7 +89,7 @@ SPLASH  JSR     STR
 ;       This is a destructive operation - no storage of A/B/X
 
 BOARD   JSR     CLS            ; Clear the screen ready to show board
-        LDAB    #15
+        LDAB    #15            ; There are 15 lines to display
 .LOOP1  LDX     #BLINEV        ; Display top set of vertical lines of the play area
         DECB
         JSR     CRLF
@@ -134,7 +163,7 @@ PUTPCE
         DEX
         RTS
 
-.DO0    JSR     .COMMON
+.DO0    JSR     .COMMON        ; Go get the X/Y positions
 
         JSR     PRNTO          ; Print Nought at correct location
         JSR     .OXOD
@@ -161,7 +190,6 @@ PUTPCE
 ;
 ; A Accumulator contains the X coordinate of the centre of the cross
 ; B Accumulator contains the Y coordinate of the centre of the cross
-
 
 PRNTX   JSR     STR            ; Store A/B/X
         LDAA    CROSS
@@ -212,7 +240,7 @@ PRNTO   JSR     STR            ; Store A/B/X
         JSR     PRTXY          ; Bottom left
         DECB
         JSR     PRTXY          ; Middle left
-        JSR     RSTR           ; Restore X/B/X
+        JSR     RSTR           ; Restore A/B/X
         RTS
 
 ;===============================================================================================
@@ -223,7 +251,6 @@ PRNTO   JSR     STR            ; Store A/B/X
 
 
 PRNTB   JSR     STR            ; Store A/B/X
-        ;STAA    SCRTCHA
         LDAA    SPACE
         STAA    XYCHA
         LDAA    SCRTCHA
@@ -250,8 +277,6 @@ PRNTB   JSR     STR            ; Store A/B/X
         JSR     RSTR           ; Restore X/B/X
         RTS
 
-
-
 ;===============================================================================================
 ; INSTR: Show lines of instructions
 ;
@@ -275,33 +300,78 @@ INSTR   JSR     STR
 .SHOW   JSR     PUTMSG
         JSR     RSTR
 .XINSTR RTS
+;===============================================================================================
+
 
 ;===============================================================================================
 ; RSTCHA: Restore the character at the current cursor position
 ; 
-; CHARAT: Contains the character to restore
+; Entry:
+;       CHARAT: Contains the character to restore
+;       AccA  : Contains the X- co-ordinate of the position to restore
+;       AccB  : Contains the Y- co-ordinate of the position to restore 
+;
+; Exit:
+;       N/A
+;  
+; External definitions:
+;
+;       CHARAT          Contains the character to restore
+;       XYCHA           Character to replace
+;       CURSX           X- co-ordinate of the position to restore
+; Dependencies:
+;
+;       PRTXY
+;       RSTR
+;       STR
+;
+; Notes:
+;
+;       The X- co-ordinate supplied is only used to restore it post operation.
 
-RSTCHA
-        JSR     STR
-        LDAA    CHARAT
-        STAA    XYCHA
-        LDAA    CURSX
-        JSR     PRTXY
-        JSR     RSTR
+RSTCHA  JSR     STR            ; Store the A/B/X Registers
+        LDAA    CHARAT         ; Get the character to replace
+        STAA    XYCHA          ; Store it in the "standard" position for PRTXY to get
+        LDAA    CURSX          ; Reload the X co-ordinate
+        JSR     PRTXY          ; Print the character
+        JSR     RSTR           ; Restore A/B/X
         RTS
-        
+;===============================================================================================
+
+
 ;===============================================================================================
 ; DRAW: Game is a draw
 ;
-
-DRAW                           ; Output Draw message and wait for a key
-        JSR     STR
-        JSR     HOME
-        LDX     #DRWMSG
-        JSR     PUTMSG
-        JSR     GETCHRB
-        JSR     RSTR
+; 
+; Entry:
+;       N/A
+;
+; Exit:
+;       N/A
+;  
+; External definitions:
+;
+;       DRWMSG          Label for "Draw Game" message
+;
+; Dependencies:
+;
+;       GETCHRB
+;       HOME
+;       PUTMSG
+;       RSTR
+;       STR
+;
+; Notes:
+;
+DRAW    JSR     STR            ; Store A/B/X
+        JSR     HOME           ; Put cursor at (0,0)
+        LDX     #DRWMSG        ; Get address of "Draw Game" message
+        JSR     PUTMSG         ; Put the messge on the screen
+        JSR     GETCHRB        ; Wait for a key press
+        JSR     RSTR           ; Restore A/B/X
         RTS
+;===============================================================================================
+
 
 ;===============================================================================================
 ; WINMSG: Show Win message
@@ -309,7 +379,7 @@ DRAW                           ; Output Draw message and wait for a key
 ; TURN: 0 = nought has won
 ;       1 = cross has won
 
-WIN     JSR     STR
+WIN     JSR     STR            ; Store the A/B/X registers
                                ; Blank out the large pieces on a win
         LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
         LDAA    DISPLO         ; X-coordinate for O-piece display
@@ -327,9 +397,9 @@ WIN     JSR     STR
           
 .STRMSG LDX     #WINLN
         STAA    0,X            ; Store appropriate symbol into first character of win message
-        JSR     HOME
-        LDX     #WINLN
+        JSR     HOME           ; Put the cursor at (0,0)
+        LDX     #WINLN         ; Get the address of the line of text to produce 
         JSR     PUTMSG         ; Print the win line
         JSR     GETCHRB        ; Await a keypress
-        JSR     RSTR
+        JSR     RSTR           ; Restore the A/B/X registers
         RTS
