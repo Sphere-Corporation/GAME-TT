@@ -27,25 +27,55 @@ SPLASH  JSR     STR
         RTS
 
 ;===============================================================================================
-; BOARD: Display the board and set the cursor to the centre square
+; BOARD: Display the initial board
+;
+; Entry:
+;       N/A
+;
+; Exit:
+;       N/A
+;  
+; External definitions:
+;
+;       BLINEV          Vertical line
+;       BLINEH          Horizontal line
+;       SPACE           A space character
+;       HLPMSG          Help message
+;       TURN            Who is going first
+;       DISPLY          Display Y co-ordinate for O and X
+;       DISPLO          Display X co-ordinate for O
+;       DISPLX          Display X co-ordinate for X
+;
+; Dependencies:
+;
+;       CLS
+;       CRLF
+;       MLTCHR
+;       PRNTO
+;       PRNTX
+;       PUTMSG
+;
+; Notes:
+;
+;       This is a destructive operation - no storage of A/B/X
 
 BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDAB    #15
-
 .LOOP1  LDX     #BLINEV        ; Display top set of vertical lines of the play area
         DECB
         JSR     CRLF
         CMPB    #1
-        BEQ     .EXIT1
+        BEQ     .EXIT1         ; If AccB is 1, finish the loop
         CMPB    #4
-        BEQ     .HORIZ
+        BEQ     .HORIZ         ; If the counter is 4 or 10, display a horizontal line
         CMPB    #10
         BEQ     .HORIZ
+        JSR     PUTMSG         ; If the counter is NOT 4 or 10, display a vertical line
+        BRA     .LOOP1         ; Loop again
+.HORIZ  LDX     #BLINEH        ; Display a horizontal line
         JSR     PUTMSG
         BRA     .LOOP1
-.HORIZ  LDX     #BLINEH 
-        JSR     PUTMSG
-        BRA     .LOOP1
+
 .EXIT1  JSR     PUTMSG         ; Output the final vertical line
         LDAA    SPACE          ; Use an " " character
         LDAB    #12            ; Print it 12 times
@@ -63,6 +93,8 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDAA    DISPLX         ; X-coordinate for X-piece display
         JSR     PRNTX          ; Print a large X-piece
         RTS
+;===============================================================================================
+
 
 ;===============================================================================================
 ; PUTPCE: Determine which piece to place at CURSX/CURSY
