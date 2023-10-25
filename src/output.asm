@@ -19,10 +19,14 @@
 ;       SPLSH1          Label for the title of the program
 ;       SPLSH2          Label for the copyright line
 ;
+;       XYCHA           Character to store the first character to go to the last character
+;       KBDPIA          Address of PIA for KBD/2 (Only supports KBD/2)
+;
 ; Dependencies:
 ;
 ;       CLS
 ;       CRLF
+;       HOME    (System)
 ;       MLTCHR
 ;       PUTMSG
 ;       RSTR
@@ -31,11 +35,11 @@
 ; Notes:
 ;
 ;       The "BUILD" label is inserted by an external command prior to assembling the code.
-;       It must contain a centred "VERSION: " literal, followed by the build or version number.
+;       It must contain a centered "VERSION: " literal, followed by the build or version number.
 
-SPLASH  JSR     STR
-        JSR     CLS             ; Clear the screen and output two lines of banner
-        LDAB    #2              ; Produce 2 blank lines
+SPLASH  JSR     STR            ; Store A/B/X
+        JSR     CLS            ; Clear the screen and output two lines of banner
+        LDAB    #2             ; Produce 2 blank lines
         JSR     MULTCR
         LDX     #SPLSH1        ; Output the Title of the program
         JSR     PUTMSG
@@ -49,47 +53,36 @@ SPLASH  JSR     STR
         LDAB    #3             ; Produce 3 blank lines
         JSR     MULTCR
         LDX     #MSGAGN        
-        JSR     PUTMSG      ; ... and wait for a keypress
+        JSR     PUTMSG         ; ... and wait for a keypress
 
-; UNDER CONSTRUCTION
-.LOOP   JSR     HOME
-        LDAA    39,X
+.LOOP   JSR     HOME           ; Place the cursor top left (and the corresponding CSRPTR value in X)
+        LDAA    39,X           ; Get the first character and stash it
         STAA    XYCHA
 
-        LDAB    #17
-.AGAIN  LDAA    40,X
-        STAA    39,X
-        INX
-        DECB
-        CMPB    #0
-        BNE     .AGAIN
+        LDAB    #17            ; There are 17 characters in the whole message
+.AGAIN  LDAA    40,X           ; Get the "second" character
+        STAA    39,X           ; Store in the "first" character
+        INX                    ; Increment the X register
+        DECB                   ; Decrement the AccB
+        CMPB    #0             ; Has AccB reached 0 ?
+        BNE     .AGAIN         ; If not, loop again
 
-        LDAA    XYCHA           ; Get first character
-        JSR     HOME            ; and make it the last character
-        STAA    56,X            ; by sending directly to the screen
+        LDAA    XYCHA          ; Get first character
+        JSR     HOME           ; and make it the last character
+        STAA    56,X           ; by sending directly to the screen
         
-        LDAA    #255
-.ILOOP  DECA
-        CMPA    #0
-        BNE     .ILOOP
-
+        LDX     #10000         ; Delay by 10000 microseconds
+.DLY    DEX                    ;        (1/100th second)
+        BNE     .DLY
                                ; Get keypresss.....        
         LDAA    #$40           ; Load a mask for CA2 flag.
         BITA    KBDPIA+1       ; See if a character has been typed in.
         BNE     .OUT
-        
-        BRA     .LOOP
+        BRA     .LOOP          ; Loop around.......
 
-; END OF CONSTRUCTION
-.OUT
-        JSR     RSTR
+.OUT    JSR     RSTR           ; Restore the A/B/X values
         LDAA    KBDPIA         ; Load the keypress value
-
         RTS
-; Space to store the first character
-.SCRATCH  .DA     1             ; Reserved space for local variable
-.TIMES  .DA     1             ; Reserved space for local variable
-
 ;===============================================================================================
 
 
