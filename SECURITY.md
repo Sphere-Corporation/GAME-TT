@@ -15,4 +15,4 @@ Other versions are listed for completeness.
 
 ## Reporting a Vulnerability
 
-Report any sort of security vulnerability (there are unlikely to be any for the SPHERE-1 computer) by raising an Issue on the [Issues page}(https://github.com/Sphere-Corporation/GAME-TT/issues)
+Report any sort of security vulnerability (there are unlikely to be any for the SPHERE-1 computer) by raising an Issue on the [Issues page](https://github.com/Sphere-Corporation/GAME-TT/issues)
