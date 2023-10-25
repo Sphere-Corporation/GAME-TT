@@ -38,7 +38,7 @@ FULLINE="$P$Q$V/"
 echo "$FULLINE" > ${SRC_DIR}build.asm
 cd $SRC_DIR
 ${SBASM_DIR}sbasm ttt.asm;
-cd -
+cd - > /dev/null
 ${CONVERTEXE_DIR}convertEXE --input ${SRC_DIR}ttt.exe --prefix TD --base 0200 --title "OXO" --noheader  --cassette OXO
 rm ${SRC_DIR}build.asm
 cp ../../SOFTWARE/site/cass_temp.js ../../SOFTWARE/site/cassette.js
