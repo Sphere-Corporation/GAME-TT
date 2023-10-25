@@ -50,8 +50,46 @@ SPLASH  JSR     STR
         JSR     MULTCR
         LDX     #MSGAGN        
         JSR     PUTMSG      ; ... and wait for a keypress
+
+; UNDER CONSTRUCTION
+.LOOP   JSR     HOME
+        LDAA    39,X
+        STAA    XYCHA
+
+        LDAB    #17
+.AGAIN  LDAA    40,X
+        STAA    39,X
+        INX
+        DECB
+        CMPB    #0
+        BNE     .AGAIN
+
+        LDAA    XYCHA           ; Get first character
+        JSR     HOME            ; and make it the last character
+        STAA    56,X            ; by sending directly to the screen
+        
+        LDAA    #255
+.ILOOP  DECA
+        CMPA    #0
+        BNE     .ILOOP
+
+                               ; Get keypresss.....        
+        LDAA    #$40           ; Load a mask for CA2 flag.
+        BITA    KBDPIA+1       ; See if a character has been typed in.
+        BNE     .OUT
+        
+        BRA     .LOOP
+
+; END OF CONSTRUCTION
+.OUT
         JSR     RSTR
+        LDAA    KBDPIA         ; Load the keypress value
+
         RTS
+; Space to store the first character
+.SCRATCH  .DA     1             ; Reserved space for local variable
+.TIMES  .DA     1             ; Reserved space for local variable
+
 ;===============================================================================================
 
 

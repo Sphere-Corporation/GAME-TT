@@ -16,7 +16,6 @@ START   LDS     #$1FF          ; Stack below program
 
         JSR     SPLASH         ; Splash Screen
         CLR     TURN
-        JSR     GETCHRB        ; Wait for a keypress
                                ; AccA contains the key pressed
         CMPA    NOUGHT         ; What key did the user press ?
         BEQ     .NOUGHT

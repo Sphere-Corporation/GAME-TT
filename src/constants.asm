@@ -38,8 +38,8 @@ BLINEV  .AZ    /             !     !/                    ;
 BLINEH  .AZ    /        -----+-----+-----/               ; Text to be used as part of the board 
 HLPMSG  .AZ    /H-HELP       !     !/                    ;
 
-SPLSH1  .AZ    /    == NOUGHTS & CROSSES ==/             ; 
-SPLSH2  .AZ    /    (C) ANDREW SHAPTON 2023/             ; Text for the splash screen
+SPLSH1  .AZ    /    == NOUGHTS & CROSSES  ==/             ; 
+SPLSH2  .AZ    /    (C) ANDREW SHAPTON  2023/             ; Text for the splash screen
 MSGAGN  .AZ    /TO START A GAME WITH "X",PRESS  ANY KEY OR "O" TO START WITH "O"/  ;
 
 
