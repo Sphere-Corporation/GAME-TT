@@ -327,10 +327,10 @@ INSTR   JSR     STR
         LDAA    SPACE          ; Use a " " character
         LDAB    #39            ; Print it 39 times to erase "Help" text
         JSR     MLTCHR
-        BRA     .XINSTR
+        RTS
 .SHOW   JSR     PUTMSG
         JSR     RSTR
-.XINSTR RTS
+        RTS
 ;===============================================================================================
 
 
@@ -426,10 +426,9 @@ WIN     JSR     STR            ; Store the A/B/X registers
         BRA     .STRMSG
 .N      LDAA    NOUGHT         ; Pop nought symbol into AccA
           
-.STRMSG LDX     #WINLN
-        STAA    0,X            ; Store appropriate symbol into first character of win message
-        JSR     HOME           ; Put the cursor at (0,0)
+.STRMSG JSR     HOME           ; Put the cursor at (0,0)
         LDX     #WINLN         ; Get the address of the line of text to produce 
+        STAA    0,X            ; Store appropriate symbol into first character of win message
         JSR     PUTMSG         ; Print the win line
         JSR     GETCHRB        ; Await a keypress
         JSR     RSTR           ; Restore the A/B/X registers
