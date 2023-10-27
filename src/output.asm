@@ -10,7 +10,7 @@
 ;       N/A
 ;
 ; Exit:
-;       N/A
+;       XYCHA           Character to store the first character to go to the last character
 ;  
 ; External definitions:
 ;
@@ -159,31 +159,55 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
 ;===============================================================================================
 ; PUTPCE: Determine which piece to place at CURSX/CURSY
 ;
-; CURSX,CURSY : Contains the current location of the cursor (X,Y)
-; TURN        : Contains the current turn : 0 for Noughts, 1 for Crosses
-; POSIT       : Contains the "square number" being targetted  
+; Entry:
+;       CURSX,CURSY : Contains the current location of the cursor (X,Y)
+;       TURN        : Contains the current turn : 0 for Noughts, 1 for Crosses
+;       POSIT       : Contains the "square number" being targetted  
+;       PIECES      : Contains the number of pieces currently on the board
+;
+; Exit:
+;       PIECES      : Contains the number of pieces currently on the board after this piece has been placed
+;  
+; External definitions:
+;
+;       CURSX,CURSY : 1 byte each
+;       TURN        : 1 byte
+;       POSIT       : 1 byte
+;       PIECES      : 1 byte
+;
+; Dependencies:
+;
+;       CLS
+;       CRLF
+;       HOME    (System)
+;       MLTCHR
+;       PUTMSG
+;       RSTR
+;       STR
+;
+; Notes:
+;
 
 PUTPCE  
 
         INC     PIECES         ; Increment the number of pieces on the board
-        LDAA    TURN
+        LDAA    TURN           ; Find out who's turn it is.
         BEQ     .DO0
-.DOX    JSR     .COMMON
+.DOX    JSR     .COMMON        ; This is Cross's turn so go get the X/Y positions
 
         JSR     PRNTX          ; Print Cross at correct location
 
         JSR     .OXOD          ; Pop it in the board matrix
-        LDAA    CROSS
-        STAA    0,X
-        CLRA    TURN
-        LDAA    CROSS
+        LDAA    CROSS          ; Get the cross symbol
+        STAA    0,X            ; Store it in the board matrix
+        ;LDAA    CROSS
         LDAA    DISPLX
         LDAB    DISPLY
         JSR     PRNTB          ; Remove old symbol
         LDAA    DISPLO
         LDAB    DISPLY        
         JSR     PRNTO          ; Print large Nought
-        CLR     TURN     
+        CLR     TURN           ; Reset the TURN to zero (indicating next is nought's turn)
         BRA     .COMMON
         
 .OXOD   LDX     #IBOARD
@@ -212,8 +236,8 @@ PUTPCE
         JSR     PRNTX          ; Print large Cross
                                ; Falls through to .COMMON
 
-.COMMON LDAA    CURSX
-        LDAB    CURSY
+.COMMON LDAA    CURSX          ; Load current cursor x- co-ordinate
+        LDAB    CURSY          ; Load current cursor y- co-ordinate
         RTS
 
 ;===============================================================================================
@@ -311,7 +335,6 @@ PRNTB   JSR     STR            ; Store A/B/X
 ;===============================================================================================
 ; INSTR: Show lines of instructions
 ;
-; 
 
 INSTR   JSR     STR
         JSR     RSTCHA         ; Restore character previously at cursor position
@@ -373,7 +396,6 @@ RSTCHA  JSR     STR            ; Store the A/B/X Registers
 ;===============================================================================================
 ; DRAW: Game is a draw
 ;
-; 
 ; Entry:
 ;       N/A
 ;
@@ -398,6 +420,13 @@ DRAW    JSR     STR            ; Store A/B/X
         JSR     HOME           ; Put cursor at (0,0)
         LDX     #DRWMSG        ; Get address of "Draw Game" message
         JSR     PUTMSG         ; Put the messge on the screen
+        LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
+        LDAA    DISPLO         ; X-coordinate for O-piece display
+        JSR     PRNTO          ; Print a nought symbol
+        LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
+        LDAA    DISPLX         ; X-coordinate for X-piece display
+        JSR     PRNTX          ; Print a cross symbol
+
         JSR     GETCHRB        ; Wait for a key press
         JSR     RSTR           ; Restore A/B/X
         RTS

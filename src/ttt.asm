@@ -5,7 +5,7 @@
         .CR 6800               ; LOAD MC6800 CROSS OVERLAY
         .TF ttt.exe,BIN        ; OUTPUT FILE TO TARGET.BIN IN BINARY FORMAT
         .OR $0200              ; START OF ASSEMBLY ADDRESS
-        .LI OFF                ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
+        .LI ON                ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
         .SF SYMBOLS.SYM        ; CREATE SYMBOL FILE
 
 ; START : Main entry point
