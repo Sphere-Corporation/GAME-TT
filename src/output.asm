@@ -90,7 +90,7 @@ SPLASH  JSR     STR            ; Store A/B/X
         CLR     PLAY2S         ; Clear player 2 score 
         CLR     PLAYERS        ; Clear variable indicating there are no player names       
         LDAA    #32            ; Load AccA with a space
-        LDAB    #20
+        LDAB    #14            ; 14 characters in "PLAYER1PLAYER2"
         LDX     #PLAY1N        ; Get initial location of player's names
 .CLRLWP STAA    0,X            ; Clear a character from the players name
         INX                    ; Increment to see next character
@@ -155,7 +155,7 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDAA    SPACE          ; Use an " " character
         LDAB    #12            ; Print it 12 times
         JSR     MLTCHR         ; Using the MLTCHR routine
-        LDX     #HLPMSG        ; Output the Help message
+        LDX     #BLINEV
         JSR     PUTMSG
         LDAA    TURN
         CMPA    #1
@@ -167,6 +167,41 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
 .CROSS  LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
         LDAA    DISPLX         ; X-coordinate for X-piece display
         JSR     PRNTX          ; Print a large X-piece
+        
+        JSR     HOME           ; Print the help message top left of the board
+        LDX     #HLPMSG
+        JSR     PUTMSG
+
+        CLR     CURSX
+        LDAB    #6
+        STAB    CURSY
+        LDX     #PLAY1N
+.P1LP   LDAA    0,X
+        STAA    XYCHA
+        LDAA    CURSX
+        CMPA    #7
+        BEQ     .P1DN
+        JSR     PRTXY
+        INX
+        INC     CURSX
+        BRA     .P1LP
+
+.P1DN
+        CLR     CURSX
+        LDAB    #12
+        STAB    CURSY
+        LDX     #PLAY2N
+.P2LP   LDAA    0,X
+        STAA    XYCHA
+        LDAA    CURSX
+        CMPA    #7
+        BEQ     .P2DN
+        JSR     PRTXY
+        INX
+        INC     CURSX
+        BRA     .P2LP
+.P2DN
+
         RTS
 ;===============================================================================================
 
@@ -362,9 +397,12 @@ INSTR   JSR     STR
         BRA     .SHOW
 .NOHELP LDAA    #1
         STAA    SHOWHLP
+        LDX     #HLPMSG
+        JSR     PUTMSG
         LDAA    SPACE          ; Use a " " character
-        LDAB    #39            ; Print it 39 times to erase "Help" text
+        LDAB    #25            ; Print it 25 times to erase "Help" text
         JSR     MLTCHR
+        
         RTS
 .SHOW   JSR     PUTMSG
         JSR     RSTR

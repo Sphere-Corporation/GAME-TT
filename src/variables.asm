@@ -28,8 +28,8 @@ WDSTAT  .DA     #0             ; Win/Draw status
 SPCOCC  .DA     #0             ; Space Occupied ? 0 = No, 1 = Yes
 
 ; Player information
-PLAY1N  .AZ /          /       ; Name of player 1
-PLAY2N  .AZ /          /       ; Name of player 2
+PLAY1N  .AZ /PLAYER1/          ; Name of player 1
+PLAY2N  .AZ /PLAYER2/          ; Name of player 2
 PLAY1S  .DA     #0             ; Player 1 score
 PLAY2S  .DA     #0             ; Player 2 score
 PLAYERS .DA     #0             ; 0 = no player names/scores defined

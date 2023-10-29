@@ -27,7 +27,7 @@ ICURSX   .AS     #16           ; X-position
 ICURSY   .AS     #9            ; Y-position
 
 ; Board Display Positions for large symbols
-DISPLY   .AS     #13           ; Y-coordinate for O- and X-piece display
+DISPLY   .AS     #15           ; Y-coordinate for O- and X-piece display
 DISPLX   .AS     #29           ; X-coordinate for X-piece display
 DISPLO   .AS     #3            ; X-coordinate for O-piece display
 
@@ -37,9 +37,9 @@ INSLN   .AZ     /ARROWS-MOVE,ENT-PLACE,ESC-RESET  WASD/  ; Instructions line
 
 BLINEV  .AZ    /             !     !/                    ;
 BLINEH  .AZ    /        -----+-----+-----/               ; Text to be used as part of the board 
-HLPMSG  .AZ    /H-HELP       !     !/                    ;
+HLPMSG  .AZ    /H-TOGGLE HELP/                           ;
 
-SPLSH1  .AZ    /    ==-NOUGHTS & CROSSES-==/             ; 
+SPLSH1  .AZ    /    ==-NOUGHTS & CROSSES-==/              ; 
 SPLSH2  .AZ    /    (C) ANDREW SHAPTON  2023/             ; Text for the splash screen
 MSGAGN  .AZ    /TO START A GAME PRESS "O" OR "X" RESET NAMES & SCORES WITH "R", SCORES WITH "S", NAMES WITH "N"/  ;
 

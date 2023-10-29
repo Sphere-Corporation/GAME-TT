@@ -267,7 +267,6 @@ XYCHA   .DA     #0             ; Storage for character to print
 ;  
 ; External definitions:
 ;       CSRPTR          (System - Cursor Pointer)
-;       XYCHA           1 byte
 ;       XCRD, YCRD      1 byte each
 ; Dependencies:
 ;
