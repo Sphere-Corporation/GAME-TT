@@ -154,7 +154,7 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
 .EXIT1  JSR     PUTMSG         ; Output the final vertical lines
         LDAA    SPACE          ; Use an " " character
         LDAB    #12            ; Print it 12 times
-        JSR     MLTCHR
+        JSR     MLTCHR         ; Using the MLTCHR routine
         LDX     #HLPMSG        ; Output the Help message
         JSR     PUTMSG
         LDAA    TURN
