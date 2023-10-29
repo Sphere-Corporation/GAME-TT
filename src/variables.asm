@@ -26,3 +26,11 @@ POSIT    .AS     #0            ; Position of the current cursor on the board
 PIECES  .DA     #0             ; Number of pieces placed on the board
 WDSTAT  .DA     #0             ; Win/Draw status
 SPCOCC  .DA     #0             ; Space Occupied ? 0 = No, 1 = Yes
+
+; Player information
+PLAY1N  .AZ /          /       ; Name of player 1
+PLAY2N  .AZ /          /       ; Name of player 2
+PLAY1S  .DA     #0             ; Player 1 score
+PLAY2S  .DA     #0             ; Player 2 score
+PLAYERS .DA     #0             ; 0 = no player names/scores defined
+                               ; 1 = players names/scores defined
