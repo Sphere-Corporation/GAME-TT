@@ -16,6 +16,7 @@ ARROWU  .AS     #$11           ; Up cursor
 ENTER   .AS     #$0D           ; ENTER Key
 ESCCHR  .AS     #$1B           ; ESCape Key
 HELPU   .AS     #$48           ; Upper case "H"
+RESET   .AS     #$52           ; "R" Character
 WASDA   .AS     #$41           ; A key (WASD) - Left
 WASDD   .AS     #$44           ; D key (WASD) - Right 
 WASDS   .AS     #$53           ; S key (WASD) - Down
@@ -40,7 +41,7 @@ HLPMSG  .AZ    /H-HELP       !     !/                    ;
 
 SPLSH1  .AZ    /    ==-NOUGHTS & CROSSES-==/             ; 
 SPLSH2  .AZ    /    (C) ANDREW SHAPTON  2023/             ; Text for the splash screen
-MSGAGN  .AZ    /TO START A GAME WITH "X",PRESS  ANY KEY OR "O" TO START WITH "O"/  ;
+MSGAGN  .AZ    /TO START A GAME PRESS "O" OR "X" RESET NAMES & SCORES WITH "R", SCORES WITH "S", NAMES WITH "N"/  ;
 
 
 WINLN   .AZ     /  WINS!-PRESS A KEY FOR NEW GAME      / ; Win line

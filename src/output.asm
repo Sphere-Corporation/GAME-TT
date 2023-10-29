@@ -82,7 +82,22 @@ SPLASH  JSR     STR            ; Store A/B/X
 
 .OUT    JSR     RSTR           ; Restore the A/B/X values
         LDAA    KBDPIA         ; Load the keypress value
+        CMPA    RESET          ; Did they press "R" ?
+        BEQ     .RESET         ; If so, reset the names and scores
         RTS
+
+.RESET  CLR     PLAY1S         ; Clear player 1 score
+        CLR     PLAY2S         ; Clear player 2 score 
+        CLR     PLAYERS        ; Clear variable indicating there are no player names       
+        LDAA    #32            ; Load AccA with a space
+        LDAB    #20
+        LDX     #PLAY1N        ; Get initial location of player's names
+.CLRLWP STAA    0,X            ; Clear a character from the players name
+        INX                    ; Increment to see next character
+        DECB                   ; Compare with end of player's names
+        BNE     .CLRLWP        ; If not - go again
+        JSR     RSTR           ; Load stored A/B/X
+        BRA     .LOOP          ; When done, go back to the main loop
 ;===============================================================================================
 
 
@@ -136,7 +151,7 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         JSR     PUTMSG
         BRA     .LOOP1
 
-.EXIT1  JSR     PUTMSG         ; Output the final vertical line
+.EXIT1  JSR     PUTMSG         ; Output the final vertical lines
         LDAA    SPACE          ; Use an " " character
         LDAB    #12            ; Print it 12 times
         JSR     MLTCHR
