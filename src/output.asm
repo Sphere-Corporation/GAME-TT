@@ -172,7 +172,7 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDX     #HLPMSG
         JSR     PUTMSG
 
-        CLR     CURSX
+        CLR     CURSX          ; Display "Player names"
         LDAB    #6
         STAB    CURSY
         LDX     #PLAY1N
@@ -201,7 +201,20 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         INC     CURSX
         BRA     .P2LP
 .P2DN
+        LDAB    #8
+        LDAA    PLAY1S
+        ADDA    #48
+        STAA    XYCHA
+        LDAA    #3
+        JSR     PRTXY
 
+        LDAA    PLAY2S
+        ADDA    #48
+        STAA    XYCHA
+        LDAA    #3
+        LDAB    #10
+        JSR     PRTXY
+        
         RTS
 ;===============================================================================================
 

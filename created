@@ -31,6 +31,20 @@ while getopts ":b:" option; do
    esac
 done
 
+CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+#echo $CURRENT_BRANCH
+#echo $CURRENT_BRANCH | tr [A-Z] [a-z]
+
+IFS='/' read -r -a array <<< "$CURRENT_BRANCH"
+if [ "${array[0]}" = "RELEASE" ]
+then 
+   echo "RELEASE BRANCH - ${array[1]}"
+   BUILD=${array[1]}
+   echo $BUILD
+else
+   echo "FEATURE BRANCH - ${array[1]}"
+fi
+
 V="VERSION:$BUILD"
 LENGTH=${#V}
 let SPC=(32-$LENGTH)/2
