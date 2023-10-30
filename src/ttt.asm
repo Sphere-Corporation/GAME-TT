@@ -17,7 +17,7 @@ START   LDS     #$1FF          ; Stack below program
         JSR     SPLASH         ; Splash Screen
         CLR     TURN
                                ; AccA contains the key pressed
-        CMPA    NOUGHT         ; What key did the user press ?
+        CMPA    NOUGHT         ; Did they press "O" ?
         BEQ     .NOUGHT
         INC     TURN           ; Cross's turn first
         
