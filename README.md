@@ -73,6 +73,19 @@ e.g.
 
 Include a `README.md` file <u>in the directory</u> detailling any instructions that are pertinent to that assembler, such that anyone can understand how to assemble the code.
 
+### Running the Game
+
+However you decide to run this game, the following instructions are required:
+
+i)	  `L OX/0200`			- to load the game from the cassette (either physical or virtual)
+
+ii)   `<CTRL-D>`			- enter debug mode
+
+iii)  `<CTRL-O> 0200`		- open the address of the program
+
+iv)	  `<CTRL-G>`			- "Go" - run the program	
+
+
 ### In action!
 
 Early version of the game running on a Sphere-1.
