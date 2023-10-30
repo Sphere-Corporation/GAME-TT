@@ -192,13 +192,14 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         CLR     CURSX
         LDAB    #6
         STAB    CURSY
+        LDAB    CURSY
         JSR     PPLYN
+
         LDX     #PLAY2N
         CLR     CURSX
         LDAB    #12
         STAB    CURSY
         JSR     PPLYN
-
 
         LDAB    #8
         LDAA    PLAY1S
