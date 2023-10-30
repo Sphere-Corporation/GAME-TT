@@ -55,19 +55,20 @@ SPLASH  JSR     STR            ; Store A/B/X
         LDX     #MSGAGN        
         JSR     PUTMSG         ; ... and wait for a keypress
 
-        ;JSR     STR
+        JSR     STR
         ;LDX     #PLAY1N
         ;CLR     CURSX
         ;LDAB    #16
         ;STAB    CURSY
         ;JSR     PPLYN
+        
         ;LDX     #PLAY2N
         ;LDAA    #20
         ;STAA    CURSX
         ;LDAB    #16
         ;STAB    CURSY
         ;JSR     PPLYN
-        ;JSR     RSTR 
+        JSR     RSTR 
         
 .LOOP   JSR     HOME           ; Place the cursor top left (and the corresponding CSRPTR value in X)
         LDAA    39,X           ; Get the first character and stash it
