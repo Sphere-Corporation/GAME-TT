@@ -4,8 +4,6 @@ build.asm
 # Ignore generated binary files
 ttt.exe
 ttt.exe.js
-*.wav
-*.WAV
 
 .DS_Store
 
