@@ -55,6 +55,20 @@ SPLASH  JSR     STR            ; Store A/B/X
         LDX     #MSGAGN        
         JSR     PUTMSG         ; ... and wait for a keypress
 
+        ;JSR     STR
+        ;LDX     #PLAY1N
+        ;CLR     CURSX
+        ;LDAB    #16
+        ;STAB    CURSY
+        ;JSR     PPLYN
+        ;LDX     #PLAY2N
+        ;LDAA    #20
+        ;STAA    CURSX
+        ;LDAB    #16
+        ;STAB    CURSY
+        ;JSR     PPLYN
+        ;JSR     RSTR 
+        
 .LOOP   JSR     HOME           ; Place the cursor top left (and the corresponding CSRPTR value in X)
         LDAA    39,X           ; Get the first character and stash it
         STAA    XYCHA
@@ -172,35 +186,19 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDX     #HLPMSG
         JSR     PUTMSG
 
-        CLR     CURSX          ; Display "Player names"
+
+        LDX     #PLAY1N
+        CLR     CURSX
         LDAB    #6
         STAB    CURSY
-        LDX     #PLAY1N
-.P1LP   LDAA    0,X
-        STAA    XYCHA
-        LDAA    CURSX
-        CMPA    #7
-        BEQ     .P1DN
-        JSR     PRTXY
-        INX
-        INC     CURSX
-        BRA     .P1LP
-
-.P1DN
+        JSR     PPLYN
+        LDX     #PLAY2N
         CLR     CURSX
         LDAB    #12
         STAB    CURSY
-        LDX     #PLAY2N
-.P2LP   LDAA    0,X
-        STAA    XYCHA
-        LDAA    CURSX
-        CMPA    #7
-        BEQ     .P2DN
-        JSR     PRTXY
-        INX
-        INC     CURSX
-        BRA     .P2LP
-.P2DN
+        JSR     PPLYN
+
+
         LDAB    #8
         LDAA    PLAY1S
         ADDA    #48
@@ -214,7 +212,26 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDAA    #3
         LDAB    #10
         JSR     PRTXY
-        
+
+        RTS
+;===============================================================================================
+
+
+;===============================================================================================
+; PPLYN: Print a player's name at a specific location
+
+PPLYN                          ; Display "Player name"
+        LDAA    0,X
+        STAA    XYCHA
+        LDAA    CURSX
+        CMPA    #7
+        BEQ     .PPDN
+        JSR     PRTXY
+        INX
+        INC     CURSX
+        BRA     PPLYN
+
+.PPDN
         RTS
 ;===============================================================================================
 
