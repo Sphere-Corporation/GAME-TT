@@ -34,3 +34,5 @@ PLAY1S  .DA     #0             ; Player 1 score
 PLAY2S  .DA     #0             ; Player 2 score
 PLAYERS .DA     #0             ; 0 = no player names/scores defined
                                ; 1 = players names/scores defined
+PLAYER  .DA     #0             ; 0 = Player 1 is selected
+                               ; 1 = Player 2 is selected

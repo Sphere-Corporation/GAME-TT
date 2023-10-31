@@ -57,20 +57,21 @@ SPLASH  JSR     STR            ; Store A/B/X
 
         JSR     STR
         LDX     #PLAY1N        ; Load X with the start of Player name 1
-        CLR     CURSX          ; Set the X co-ordinate to be zero
-        LDAB    #16             ; Set the Y co-ordinate to be 6,
+        LDAA    #1             ; Set the X co-ordinate to be 1
+        STAA    CURSX          ; Store it in CURSX
+        LDAB    #16            ; Set the Y co-ordinate to be 16,
         STAB    CURSY          ; Store it in CURSY
         JSR     PPLYN          ; Display the player 1 name
 
         LDX     #PLAY2N        ; Load X with the start of Player name 2
-        LDAA    #25
+        LDAA    #24
         STAA    CURSX          ; Set the X co-ordinate to be 25
-        LDAB    #16             ; Set the Y co-ordinate to be 6,
+        LDAB    #16            ; Set the Y co-ordinate to be 6,
         STAB    CURSY          ; Store it in CURSY
         JSR     PPLYN          ; Display the player 1 name
 
+        JSR     .SEL1
 
-        JSR     RSTR 
         
 .LOOP   JSR     HOME           ; Place the cursor top left (and the corresponding CSRPTR value in X)
         LDAA    39,X           ; Get the first character and stash it
@@ -101,6 +102,9 @@ SPLASH  JSR     STR            ; Store A/B/X
         LDAA    KBDPIA         ; Load the keypress value
         CMPA    RESET          ; Did they press "R" ?
         BEQ     .RESET         ; If so, reset the names and scores
+        CMPA    EQUALS
+        BEQ     .SELPLY
+        
         RTS
 
 .RESET  CLR     PLAY1S         ; Clear player 1 score
@@ -109,12 +113,51 @@ SPLASH  JSR     STR            ; Store A/B/X
         LDAA    #32            ; Load AccA with a space
         LDAB    #14            ; 14 characters in "PLAYER1PLAYER2"
         LDX     #PLAY1N        ; Get initial location of player's names
+
 .CLRLWP STAA    0,X            ; Clear a character from the players name
         INX                    ; Increment to see next character
         DECB                   ; Compare with end of player's names
         BNE     .CLRLWP        ; If not - go again
         JSR     RSTR           ; Load stored A/B/X
         BRA     .LOOP          ; When done, go back to the main loop
+
+.DISPQ  JSR     PRTXY
+        ADDA    #8
+        JSR     PRTXY
+        RTS
+
+.SELPLY LDAA    PLAYER
+        BEQ     .SEL2
+                        
+
+.SEL1   LDAA    SPACE
+        JSR     .P2
+        LDAA    EQUALS
+        JSR     .P1
+        CLR     PLAYER
+        BRA     .LOOP
+        
+.SEL2   LDAA    SPACE
+        JSR     .P1
+        LDAA    EQUALS
+        JSR     .P2
+        LDAA    #1
+        STAA    PLAYER
+        JMP     .LOOP
+
+.P1     STAA    XYCHA
+        LDAA    #0
+        LDAB    #16
+        JSR     .DISPQ
+        RTS
+
+.P2     STAA    XYCHA
+        LDAA    #23
+        LDAB    #16
+        JSR     .DISPQ
+        RTS
+
+                
 ;===============================================================================================
 
 

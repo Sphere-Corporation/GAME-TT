@@ -230,6 +230,7 @@ INIT
         CMPA     #9
         BNE     .RILP
 
+        CLR     PLAYER
         JSR     INSTR          ; Show Instructions if needed
 
         LDAA    CURSOR         ; Cursor character value
@@ -239,4 +240,5 @@ INIT
         LDAB    ICURSY
         STAB    CURSY          ; Store initial cursor position
         JSR     PRTXY          ; Print the cursor there
+
         RTS

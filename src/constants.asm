@@ -7,6 +7,7 @@ NOUGHT  .AS     #79            ; Nought symbol
 CURSOR  .AS     #$FF           ; Cursor Symbol
 SPACE   .AS     #32            ; Space Character
 DASH    .AS     #$2D           ; Dash character
+EQUALS  .AS     #$3D           ; = character
 
 ; Keycodes
 ARROWD  .AS     #$13           ; Down cursor
