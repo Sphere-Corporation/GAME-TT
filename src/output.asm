@@ -56,18 +56,20 @@ SPLASH  JSR     STR            ; Store A/B/X
         JSR     PUTMSG         ; ... and wait for a keypress
 
         JSR     STR
-        ;LDX     #PLAY1N
-        ;CLR     CURSX
-        ;LDAB    #16
-        ;STAB    CURSY
-        ;JSR     PPLYN
-        
-        ;LDX     #PLAY2N
-        ;LDAA    #20
-        ;STAA    CURSX
-        ;LDAB    #16
-        ;STAB    CURSY
-        ;JSR     PPLYN
+        LDX     #PLAY1N        ; Load X with the start of Player name 1
+        CLR     CURSX          ; Set the X co-ordinate to be zero
+        LDAB    #16             ; Set the Y co-ordinate to be 6,
+        STAB    CURSY          ; Store it in CURSY
+        JSR     PPLYN          ; Display the player 1 name
+
+        LDX     #PLAY2N        ; Load X with the start of Player name 2
+        LDAA    #25
+        STAA    CURSX          ; Set the X co-ordinate to be 25
+        LDAB    #16             ; Set the Y co-ordinate to be 6,
+        STAB    CURSY          ; Store it in CURSY
+        JSR     PPLYN          ; Display the player 1 name
+
+
         JSR     RSTR 
         
 .LOOP   JSR     HOME           ; Place the cursor top left (and the corresponding CSRPTR value in X)
@@ -188,32 +190,31 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         JSR     PUTMSG
 
 
-        LDX     #PLAY1N
-        CLR     CURSX
-        LDAB    #6
-        STAB    CURSY
-        LDAB    CURSY
-        JSR     PPLYN
+        LDX     #PLAY1N        ; Load X with the start of Player name 1
+        CLR     CURSX          ; Set the X co-ordinate to be zero
+        LDAB    #6             ; Set the Y co-ordinate to be 6,
+        STAB    CURSY          ; Store it in CURSY
+        JSR     PPLYN          ; Display the player 1 name
 
-        LDX     #PLAY2N
-        CLR     CURSX
-        LDAB    #12
-        STAB    CURSY
-        JSR     PPLYN
+        LDX     #PLAY2N        ; Load X with the start of Player name 1
+        CLR     CURSX          ; Set the X co-ordinate to be zero
+        LDAB    #12            ; Set the Y co-ordinate to be 12,
+        STAB    CURSY          ; Store it in CURSY
+        JSR     PPLYN          ; Display the player 2 name
 
-        LDAB    #8
-        LDAA    PLAY1S
-        ADDA    #48
-        STAA    XYCHA
-        LDAA    #3
-        JSR     PRTXY
+        LDAB    #8             ; Set Y co-ordinate of Player 1 score
+        LDAA    PLAY1S         ; Get Player 1 score
+        ADDA    #48            ; Add 48 to the score to give an ASCII value
+        STAA    XYCHA          ; Store the ASCII score character in XYCHA
+        LDAA    #3             ; Set the X co-ordinate of the Player 1 score
+        JSR     PRTXY          ; Output XYCHA at (3,8)
 
-        LDAA    PLAY2S
-        ADDA    #48
-        STAA    XYCHA
-        LDAA    #3
-        LDAB    #10
-        JSR     PRTXY
+        LDAA    PLAY2S         ; Get Player 2 score
+        ADDA    #48            ; Add 48 to the score to give an ASCII value
+        STAA    XYCHA          ; Store the ASCII score character in XYCHA
+        LDAA    #3             ; Set the X co-ordinate of the Player 2 score
+        LDAB    #10            ; Set Y co-ordinate of Player 2 score
+        JSR     PRTXY          ; Output XYCHA at (3,10)
 
         RTS
 ;===============================================================================================
@@ -221,20 +222,24 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
 
 ;===============================================================================================
 ; PPLYN: Print a player's name at a specific location
+;
 
-PPLYN                          ; Display "Player name"
-        LDAA    0,X
-        STAA    XYCHA
-        LDAA    CURSX
-        CMPA    #7
-        BEQ     .PPDN
-        JSR     PRTXY
-        INX
-        INC     CURSX
-        BRA     PPLYN
-
+PPLYN   CLR     .PPLYNC 
+.PPLP   LDAA    0,X            ; Get the next character of the player's name
+        STAA    XYCHA          ; Store it in XYCHA ready for output
+        LDAA    .PPLYNC
+        CMPA    #7             ; Is AccA 7 (have we reached the end of the player's name)?
+        BEQ     .PPDN          ; If we have, jump to the end
+        LDAA    CURSX          ; CURSX is the X co-ordinate 
+        JSR     PRTXY          ; Otherwise, output the character
+        INX                    ; Increment X (look at the next character)
+        INC     CURSX          ; Increment the X position
+        INC     .PPLYNC
+        BRA     .PPLP          ; Go around the loop again
 .PPDN
         RTS
+
+.PPLYNC .DA     #0
 ;===============================================================================================
 
 
