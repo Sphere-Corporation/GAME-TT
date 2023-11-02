@@ -19,7 +19,7 @@ SBASM_DIR=../../../SOFTWARE/asm/sbasm3/
 # Set location of convertEXE (comment out if on search path)
 CONVERTEXE_DIR=../TOOLS/CONVERT/
 # Set location of output files (mandatory)
-OUTPUT_DIR=OUTPUT/
+OUTPUT_DIR=ASSETS/
 # Set location of source files
 SRC_DIR=src/
 
@@ -59,7 +59,7 @@ ${SBASM_DIR}sbasm ttt.asm
 cd - > /dev/null
 # Convert raw executable into a virtual sphere-compatible set of javascript
 # Convert cassette form into a .WAV file
-${CONVERTEXE_DIR}convertEXE --input ${SRC_DIR}ttt.exe --prefix OX --base 0200 --title "OXO" --silent --noheader  --cassette ttt --vcass ttt
+${CONVERTEXE_DIR}convertEXE --input ${SRC_DIR}ttt.exe --prefix OX --base 0200 --title "OXO" --noheader  --cassette ttt --vcass ttt
 rm ${SRC_DIR}build.asm 2>/dev/null
 
 cp ../../SOFTWARE/site/devsite/cassette_temp.js ../../SOFTWARE/site/devsite/cassette.js
