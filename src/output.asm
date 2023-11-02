@@ -70,7 +70,22 @@ SPLASH  JSR     STR            ; Store A/B/X
         STAB    CURSY          ; Store it in CURSY
         JSR     PPLYN          ; Display the player 1 name
 
-        JSR     .SEL1
+        
+        LDAB    #16            ; Set Y co-ordinate of Player 1 score
+        LDAA    PLAY1S         ; Get Player 1 score
+        ADDA    #48            ; Add 48 to the score to give an ASCII value
+        STAA    XYCHA          ; Store the ASCII score character in XYCHA
+        LDAA    #13            ; Set the X co-ordinate of the Player 1 score
+        JSR     PRTXY          ; Output XYCHA at (13,16)
+
+        LDAA    PLAY2S         ; Get Player 2 score
+        ADDA    #48            ; Add 48 to the score to give an ASCII value
+        STAA    XYCHA          ; Store the ASCII score character in XYCHA
+        LDAA    #18            ; Set the X co-ordinate of the Player 2 score
+        LDAB    #16            ; Set Y co-ordinate of Player 2 score
+        JSR     PRTXY          ; Output XYCHA at (18,16)
+
+        JSR     .SEL1          ; Default selection is Player 1
 
         
 .LOOP   JSR     HOME           ; Place the cursor top left (and the corresponding CSRPTR value in X)
@@ -102,9 +117,8 @@ SPLASH  JSR     STR            ; Store A/B/X
         LDAA    KBDPIA         ; Load the keypress value
         CMPA    RESET          ; Did they press "R" ?
         BEQ     .RESET         ; If so, reset the names and scores
-        CMPA    EQUALS
-        BEQ     .SELPLY
-        
+        CMPA    EQUALS         ; Did they press "R"
+        BEQ     .SELPLY        ; If so, toggle the "Player" indicator.
         RTS
 
 .RESET  CLR     PLAY1S         ; Clear player 1 score
@@ -121,23 +135,23 @@ SPLASH  JSR     STR            ; Store A/B/X
         JSR     RSTR           ; Load stored A/B/X
         BRA     .LOOP          ; When done, go back to the main loop
 
-.DISPQ  JSR     PRTXY
-        ADDA    #8
-        JSR     PRTXY
+.DISPQ  JSR     PRTXY          ; Display a "Selected" indicator around a specific player
+        ADDA    #8             ; After outputting the first symbol, add 8 to the X co-ordinate 
+        JSR     PRTXY          ; Output the second "Selected" symbol 
         RTS
 
-.SELPLY LDAA    PLAYER
-        BEQ     .SEL2
+.SELPLY LDAA    PLAYER         ; Switch selection between players
+        BEQ     .SEL2          ; If Player 2 is current, then switch to Player 1
                         
 
-.SEL1   LDAA    SPACE
+.SEL1   LDAA    SPACE          ; Switch to Player 1 
         JSR     .P2
         LDAA    EQUALS
         JSR     .P1
         CLR     PLAYER
         BRA     .LOOP
         
-.SEL2   LDAA    SPACE
+.SEL2   LDAA    SPACE          ; Switch to Player 2
         JSR     .P1
         LDAA    EQUALS
         JSR     .P2
@@ -145,19 +159,18 @@ SPLASH  JSR     STR            ; Store A/B/X
         STAA    PLAYER
         JMP     .LOOP
 
-.P1     STAA    XYCHA
-        LDAA    #0
-        LDAB    #16
-        JSR     .DISPQ
+.P1     STAA    XYCHA          ; Store the equals character in XYCHA
+        LDAA    #0             ; For Player 1, set the X co-ordinate
+        LDAB    #16            ; For Player 1, set the Y co-ordinate
+        JSR     .DISPQ         ; Display the player selection
         RTS
 
-.P2     STAA    XYCHA
-        LDAA    #23
-        LDAB    #16
-        JSR     .DISPQ
+.P2     STAA    XYCHA          ; Store the equals character in XYCHA
+        LDAA    #23            ; For Player 2, set the X co-ordinate
+        LDAB    #16            ; For Player 2, set the Y co-ordinate             
+        JSR     .DISPQ         ; Display the player selection
         RTS
 
-                
 ;===============================================================================================
 
 

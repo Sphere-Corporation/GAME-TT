@@ -45,6 +45,7 @@ else
    echo "FEATURE BRANCH - ${array[1]}"
 fi
 
+# Create dynamic build information
 V="VERSION:$BUILD"
 LENGTH=${#V}
 let SPC=(32-$LENGTH)/2
@@ -53,13 +54,17 @@ Q=`printf '%0.s!' $(seq 1 $SPC) | tr "!" " "`
 FULLINE="$P$Q$V/"
 echo "$FULLINE" > ${SRC_DIR}build.asm
 cd $SRC_DIR
-${SBASM_DIR}sbasm ttt.asm
+# Assemble the code to produce an output file (ttt.exe) in raw executable format
+${SBASM_DIR}sbasm ttt.asm     
 cd - > /dev/null
-${CONVERTEXE_DIR}convertEXE --input ${SRC_DIR}ttt.exe --prefix OX --base 0200 --title "OXO" --noheader  --cassette OXO
-rm ${SRC_DIR}build.asm
+# Convert raw executable into a virtual sphere-compatible set of javascript
+# Convert cassette form into a .WAV file
+${CONVERTEXE_DIR}convertEXE --input ${SRC_DIR}ttt.exe --prefix OX --base 0200 --title "OXO" --silent --noheader  --cassette ttt --vcass ttt
+rm ${SRC_DIR}build.asm 2>/dev/null
 
 cp ../../SOFTWARE/site/devsite/cassette_temp.js ../../SOFTWARE/site/devsite/cassette.js
-cat ${SRC_DIR}ttt.exe.js >> ../../SOFTWARE/site/devsite/cassette.js
-mv ${SRC_DIR}ttt.exe $OUTPUT_DIR
-mv ${SRC_DIR}ttt.exe.js $OUTPUT_DIR
-mv *.wav $OUTPUT_DIR
+cat ${SRC_DIR}ttt.exe.js >> ../../SOFTWARE/site/devsite/cassette.js 2>/dev/null
+mv ${SRC_DIR}ttt.exe $OUTPUT_DIR 2>/dev/null
+mv ${SRC_DIR}ttt.exe.js $OUTPUT_DIR 2>/dev/null
+mv *.wav $OUTPUT_DIR 2>/dev/null
+mv *.cassette $OUTPUT_DIR 2>/dev/null
