@@ -1,0 +1,16 @@
+PLAYER      0 = Player 1 is selected (so went first)
+            1 = Player 2 is selected
+
+PLAY1ST     0 = Noughts went first 
+            1 = Crosses went first
+
+
+at the end of the game:
+
+if nought won 
+if PLAYER = 0 and PLAY1ST = 0, then PLAYER1 won
+if PLAYER = 1 and PLAY1ST = 0, then PLAYER2 won
+
+if cross won
+if PLAYER = 0 and PLAY1ST = 1, then PLAYER1 won
+if PLAYER = 1 and PLAY1ST = 1, then PLAYER2 won

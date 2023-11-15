@@ -230,7 +230,7 @@ INIT
         CMPA     #9
         BNE     .RILP
 
-        CLR     PLAYER
+        CLR     PLAYER         ; Set default PLAYER selection to "0" - indicating player 1
         JSR     INSTR          ; Show Instructions if needed
 
         LDAA    CURSOR         ; Cursor character value

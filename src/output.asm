@@ -117,22 +117,12 @@ SPLASH  JSR     STR            ; Store A/B/X
         LDAA    KBDPIA         ; Load the keypress value
         CMPA    RESET          ; Did they press "R" ?
         BEQ     .RESET         ; If so, reset the names and scores
-        CMPA    EQUALS         ; Did they press "R"
+        CMPA    EQUALS         ; Did they press "="
         BEQ     .SELPLY        ; If so, toggle the "Player" indicator.
         RTS
 
 .RESET  CLR     PLAY1S         ; Clear player 1 score
         CLR     PLAY2S         ; Clear player 2 score 
-        CLR     PLAYERS        ; Clear variable indicating there are no player names       
-        LDAA    #32            ; Load AccA with a space
-        LDAB    #14            ; 14 characters in "PLAYER1PLAYER2"
-        LDX     #PLAY1N        ; Get initial location of player's names
-
-.CLRLWP STAA    0,X            ; Clear a character from the players name
-        INX                    ; Increment to see next character
-        DECB                   ; Compare with end of player's names
-        BNE     .CLRLWP        ; If not - go again
-        JSR     RSTR           ; Load stored A/B/X
         BRA     .LOOP          ; When done, go back to the main loop
 
 .DISPQ  JSR     PRTXY          ; Display a "Selected" indicator around a specific player
@@ -141,15 +131,16 @@ SPLASH  JSR     STR            ; Store A/B/X
         RTS
 
 .SELPLY LDAA    PLAYER         ; Switch selection between players
-        BEQ     .SEL2          ; If Player 2 is current, then switch to Player 1
+        BEQ     .SEL2          ; If Player 1 is current, then switch to Player 2
                         
 
 .SEL1   LDAA    SPACE          ; Switch to Player 1 
         JSR     .P2
         LDAA    EQUALS
         JSR     .P1
-        CLR     PLAYER
-        BRA     .LOOP
+        LDAA    #0
+        STAA    PLAYER
+        JMP     .LOOP
         
 .SEL2   LDAA    SPACE          ; Switch to Player 2
         JSR     .P1
@@ -252,7 +243,7 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         STAB    CURSY          ; Store it in CURSY
         JSR     PPLYN          ; Display the player 1 name
 
-        LDX     #PLAY2N        ; Load X with the start of Player name 1
+        LDX     #PLAY2N        ; Load X with the start of Player name 2
         CLR     CURSX          ; Set the X co-ordinate to be zero
         LDAB    #12            ; Set the Y co-ordinate to be 12,
         STAB    CURSY          ; Store it in CURSY
@@ -343,7 +334,6 @@ PUTPCE
         JSR     .OXOD          ; Pop it in the board matrix
         LDAA    CROSS          ; Get the cross symbol
         STAA    0,X            ; Store it in the board matrix
-        ;LDAA    CROSS
         LDAA    DISPLX
         LDAB    DISPLY
         JSR     PRNTB          ; Remove old symbol
@@ -351,6 +341,7 @@ PUTPCE
         LDAB    DISPLY        
         JSR     PRNTO          ; Print large Nought
         CLR     TURN           ; Reset the TURN to zero (indicating next is nought's turn)
+        JSR     .SWPPLR        ; Change player over
         BRA     .COMMON
         
 .OXOD   LDX     #IBOARD
@@ -369,6 +360,7 @@ PUTPCE
         STAA    0,X
         LDAA    #1
         STAA    TURN
+        JSR     .SWPPLR        ; Change player over
         LDAA    NOUGHT
         
         LDAA    DISPLO
@@ -383,6 +375,14 @@ PUTPCE
         LDAB    CURSY          ; Load current cursor y- co-ordinate
         RTS
 
+.SWPPLR                        ; SWAP PLAYER VARIABLE OVER (0-1)
+        LDAA    PLAYER
+        BEQ     .ONE
+        CLR     PLAYER
+        JMP     .DONE
+.ONE    INC     PLAYER
+.DONE   
+        RTS
 ;===============================================================================================
 ; PRNTX: Prints a cross  
 ;
@@ -594,12 +594,21 @@ WIN     JSR     STR            ; Store the A/B/X registers
         LDAA    DISPLX         ; X-coordinate for X-piece display
         JSR     PRNTB          ; Print a blank over the cross symbol
 
-        LDAA    TURN           ; See who has won
-        CMPA    #1             ; O's has won
-        BEQ     .N
-        LDAA    CROSS          ; Pop cross symbol into AccA
-        BRA     .STRMSG
-.N      LDAA    NOUGHT         ; Pop nought symbol into AccA
+; Determine who is the next player (and therefore who is the current player - award point to current player)
+
+        LDAA    PLAYER
+        BEQ     .INCP1
+        INC     PLAY2S
+        JMP     .NORX
+.INCP1  INC     PLAY1S
+
+.NORX   LDAA    TURN
+        BNE     .N
+
+        LDAA    CROSS          ; Put cross symbol into AccA
+        JMP     .STRMSG
+.N      LDAA    NOUGHT         ; Put nought symbol into AccA
+        
           
 .STRMSG JSR     HOME           ; Put the cursor at (0,0)
         LDX     #WINLN         ; Get the address of the line of text to produce 

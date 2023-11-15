@@ -1,0 +1,13 @@
+# build.toml
+#
+# Configuration for SPHERE-1 builds' common configuration
+#
+# (c) Andrew Shapton 2023
+#
+# Definition of the assembler in use
+
+title = "Assembler Configuration TOML file"
+
+[AssemblerConfig]
+assembler       = "sbasm"                                                           # Name of assembler executable
+assemblerDir    = "/Users/andrew.shapton/MyProjects/sphere/SOFTWARE/asm/sbasm3/"    # Location of assembler
