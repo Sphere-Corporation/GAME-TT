@@ -43,15 +43,8 @@ SPLASH  JSR     STR            ; Store A/B/X
         JSR     MULTCR
         LDX     #SPLSH1        ; Output the Title of the program
         JSR     PUTMSG
-        LDAB    #8             ; Produce 8 blank lines
-        JSR     MULTCR
-        LDX     #SPLSH2        ; Then the copyright message
+        LDX     #BUILD         ; Show the build/version number
         JSR     PUTMSG
-        JSR     CRLF           ; Display a blank line
-        LDX     #BUILD         ; Display Build information
-        JSR     PUTMSG
-        LDAB    #3             ; Produce 3 blank lines
-        JSR     MULTCR
         LDX     #MSGAGN        
         JSR     PUTMSG         ; ... and wait for a keypress
 
