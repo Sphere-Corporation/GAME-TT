@@ -32,6 +32,17 @@ DISPLY   .AS     #15           ; Y-coordinate for O- and X-piece display
 DISPLX   .AS     #29           ; X-coordinate for X-piece display
 DISPLO   .AS     #3            ; X-coordinate for O-piece display
 
+; Board Positions
+PIECE    .AS     #5            ; Initial square number
+;
+;               1  |  2  |  3
+;             -----+-----+-----
+;               4  |  5  |  6
+;             -----+-----+-----
+;               7  |  8  |  9
+;
+;    Starting position is ALWAYS #5 (Centre)
+
 ; Strings
 DRWMSG  .AZ     /      DRAW GAME - PRESS A KEY        /  ; Game is a draw
 INSLN   .AZ     /ARROWS-MOVE,ENT-PLACE,ESC-RESET  WASD/  ; Instructions line 
