@@ -16,13 +16,11 @@ START   LDS     #$1FF          ; Stack below program
 
         JSR     SPLASH         ; Splash Screen
         CLR     TURN
-        CLR     PLAY1ST        ; Remember that for later in the game
                                ; AccA contains the key pressed
         CMPA    NOUGHT         ; Did they press "O" ?
         BEQ     .NOUGHT
         INC     TURN           ; Cross's turn first
         LDAA    #1             ; Store that cross is going first
-        STAA    PLAY1ST        ; Remember that for later in the game
 
 .NOUGHT JSR     BOARD          ; Display Board
         JSR     INIT           ; Initialise the game

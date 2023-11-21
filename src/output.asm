@@ -123,7 +123,8 @@ SPLASH  JSR     STR            ; Store A/B/X
         JSR     PRTXY          ; Output the second "Selected" symbol 
         RTS
 
-.SELPLY LDAA    PLAYER         ; Switch selection between players
+.SELPLY LDAB    #16            ; Load AccB with the row number of the Player 1 name
+        LDAA    PLAYER         ; Switch selection between players
         BEQ     .SEL2          ; If Player 1 is current, then switch to Player 2
                         
 
@@ -131,8 +132,7 @@ SPLASH  JSR     STR            ; Store A/B/X
         JSR     .P2
         LDAA    EQUALS
         JSR     .P1
-        LDAA    #0
-        STAA    PLAYER
+        CLR     PLAYER
         JMP     .LOOP
         
 .SEL2   LDAA    SPACE          ; Switch to Player 2
@@ -144,14 +144,12 @@ SPLASH  JSR     STR            ; Store A/B/X
         JMP     .LOOP
 
 .P1     STAA    XYCHA          ; Store the equals character in XYCHA
-        LDAA    #0             ; For Player 1, set the X co-ordinate
-        LDAB    #16            ; For Player 1, set the Y co-ordinate
+        CLRA                   ; For Player 1, set the X co-ordinate
         JSR     .DISPQ         ; Display the player selection
         RTS
 
 .P2     STAA    XYCHA          ; Store the equals character in XYCHA
         LDAA    #23            ; For Player 2, set the X co-ordinate
-        LDAB    #16            ; For Player 2, set the Y co-ordinate             
         JSR     .DISPQ         ; Display the player selection
         RTS
 
@@ -316,14 +314,11 @@ PPLYN   CLR     .PPLYNC
 ;
 
 PUTPCE  
-
         INC     PIECES         ; Increment the number of pieces on the board
         LDAA    TURN           ; Find out who's turn it is.
         BEQ     .DO0
 .DOX    JSR     .COMMON        ; This is Cross's turn so go get the X/Y positions
-
         JSR     PRNTX          ; Print Cross at correct location
-
         JSR     .OXOD          ; Pop it in the board matrix
         LDAA    CROSS          ; Get the cross symbol
         STAA    0,X            ; Store it in the board matrix
@@ -334,11 +329,13 @@ PUTPCE
         LDAB    DISPLY        
         JSR     PRNTO          ; Print large Nought
         CLR     TURN           ; Reset the TURN to zero (indicating next is nought's turn)
-        JSR     .SWPPLR        ; Change player over
+        JSR     SWPPLR
+
         BRA     .COMMON
         
 .OXOD   LDX     #IBOARD
         LDAA    POSIT
+
 .DOXOL  INX
         DECA
         BNE     .DOXOL
@@ -346,36 +343,29 @@ PUTPCE
         RTS
 
 .DO0    JSR     .COMMON        ; Go get the X/Y positions
-
         JSR     PRNTO          ; Print Nought at correct location
         JSR     .OXOD
         LDAA    NOUGHT
         STAA    0,X
-        LDAA    #1
-        STAA    TURN
-        JSR     .SWPPLR        ; Change player over
-        LDAA    NOUGHT
-        
         LDAA    DISPLO
         LDAB    DISPLY
         JSR     PRNTB          ; Remove old symbol
         LDAA    DISPLX
         LDAB    DISPLY
         JSR     PRNTX          ; Print large Cross
+
+        LDAA    #1
+        STAA    TURN
+
                                ; Falls through to .COMMON
 
-.COMMON LDAA    CURSX          ; Load current cursor x- co-ordinate
+.COMMON 
+
+        LDAA    CURSX          ; Load current cursor x- co-ordinate
         LDAB    CURSY          ; Load current cursor y- co-ordinate
         RTS
 
-.SWPPLR                        ; SWAP PLAYER VARIABLE OVER (0-1)
-        LDAA    PLAYER
-        BEQ     .ONE
-        CLR     PLAYER
-        JMP     .DONE
-.ONE    INC     PLAYER
-.DONE   
-        RTS
+
 ;===============================================================================================
 ; PRNTX: Prints a cross  
 ;
@@ -573,7 +563,7 @@ DRAW    JSR     STR            ; Store A/B/X
 
 
 ;===============================================================================================
-; WINMSG: Show Win message
+; WIN: Show Win message
 ;
 ; TURN: 0 = nought has won
 ;       1 = cross has won

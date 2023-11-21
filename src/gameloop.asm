@@ -5,7 +5,7 @@ ROUND   JSR     STR
         LDAB    #$FF           ; Look at the status coming back - $FF is a draw
         CMPB    WDSTAT
         BEQ     .JDRAW   
-        LDAB    #1             ; a 1 indicates a Win
+        LDAB    #1             ; a 1 indicates a Win, so work out who has won.
         CMPB    WDSTAT
         BEQ     .JWIN
         JSR     RSTR
@@ -49,6 +49,8 @@ ROUND   JSR     STR
         CMPA    SPCOCC         ; Check if space is occupied
         BEQ     .AGAIN         ; No piece is required.
         JSR     PUTPCE         ; Determine which piece to place in CURSX/CURSY
+        
+
         BRA     .AROUND
 
 .ARRD   LDAB    CURSY          ; Ensure that we don't go down below the board.
@@ -104,4 +106,16 @@ ROUND   JSR     STR
 
 .AGAIN  JMP     ROUND
 
+
+
 DONE    RTS                    ; Exit Game Loop subroutine
+
+SWPPLR                         ; SWAP PLAYER VARIABLE OVER (0-1)
+        LDAA    PLAYER
+        BEQ     .ONE
+        CLR     PLAYER
+        JMP     .DONE
+.ONE    LDAA    #1
+        STAA    PLAYER
+.DONE   
+        RTS

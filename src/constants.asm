@@ -49,7 +49,7 @@ INSLN   .AZ     /ARROWS-MOVE,ENT-PLACE,ESC-RESET  WASD/  ; Instructions line
 
 BLINEV  .AZ    /             !     !/                    ;
 BLINEH  .AZ    /        -----+-----+-----/               ; Text to be used as part of the board 
-HLPMSG  .AZ    /H-TOGGLE HELP/                           ;
+HLPMSG  .AZ    /H-HELP ON/,#$2F,/OFF/                           ;
 
 SPLSH1  .AZ    /    ==-NOUGHTS & CROSSES-==/,#$0D,#$0D,#$0D,#$0D,#$0D,#$0D,#$0D,/    (C) ANDREW SHAPTON  2023/,#$0D                         ; Text for the splash screen
 MSGAGN  .AZ    #$0D,/HTTP:/,#$2F,#$2F,/TINYURL.COM/,#$2F,/SPHERE-GAMETT/,#$0D,/TO START A GAME PRESS "O" OR "X"   RESET: "S"CORES, "N"AMES/ ; Rest of the text for the splash screen
