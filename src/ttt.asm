@@ -5,7 +5,7 @@
         .CR 6800               ; LOAD MC6800 CROSS OVERLAY
         .TF ttt.exe,BIN        ; OUTPUT FILE IN BINARY FORMAT
         .OR $0200              ; START OF ASSEMBLY ADDRESS
-        .LI OFF                ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
+        .LI ON                ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
         .SF SYMBOLS.SYM        ; CREATE SYMBOL FILE
 
 ; START : Main entry point
@@ -15,13 +15,12 @@ START   LDS     #$1FF          ; Stack below program
                                ; MUST be first line of code
 
         JSR     SPLASH         ; Splash Screen
-        CLR     TURN
                                ; AccA contains the key pressed
         CMPA    NOUGHT         ; Did they press "O" ?
         BEQ     .NOUGHT
         INC     TURN           ; Cross's turn first
         LDAA    #1             ; Store that cross is going first
-
+        
 .NOUGHT JSR     BOARD          ; Display Board
         JSR     INIT           ; Initialise the game
         JSR     GLOOP          ; Main Loop

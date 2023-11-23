@@ -82,7 +82,7 @@ SPLASH  JSR     STR            ; Store A/B/X
 
         
 .LOOP   JSR     HOME           ; Place the cursor top left (and the corresponding CSRPTR value in X)
-        LDAA    39,X           ; Get the first character and stash it
+        LDAA    39,X     ; Get the first character and stash it
         STAA    XYCHA
 
         LDAB    #17            ; There are 17 characters in the whole message
@@ -112,6 +112,12 @@ SPLASH  JSR     STR            ; Store A/B/X
         BEQ     .RESET         ; If so, reset the names and scores
         CMPA    EQUALS         ; Did they press "="
         BEQ     .SELPLY        ; If so, toggle the "Player" indicator.
+        CMPA    NOUGHT         ; Did they press "O" ?
+        BEQ     .NOUGHT
+        INC     TURN           ; Cross's turn first
+        LDAA    #1             ; Store that cross is going first
+        
+.NOUGHT
         RTS
 
 .RESET  CLR     PLAY1S         ; Clear player 1 score
