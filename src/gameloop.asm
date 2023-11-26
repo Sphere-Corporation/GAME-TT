@@ -110,12 +110,14 @@ ROUND   JSR     STR
 
 DONE    RTS                    ; Exit Game Loop subroutine
 
-SWPPLR                         ; SWAP PLAYER VARIABLE OVER (0-1)
+SWPPLR                         ; SWAP PLAYER VARIABLE OVER (1-2)
         LDAA    PLAYER
+        CMPA    #1
         BEQ     .ONE
-        CLR     PLAYER
+        DECA
+        STAA    PLAYER
         JMP     .DONE
-.ONE    LDAA    #1
+.ONE    INCA
         STAA    PLAYER
 .DONE   
         RTS

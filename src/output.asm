@@ -82,7 +82,7 @@ SPLASH  JSR     STR            ; Store A/B/X
 
         
 .LOOP   JSR     HOME           ; Place the cursor top left (and the corresponding CSRPTR value in X)
-        LDAA    39,X     ; Get the first character and stash it
+        LDAA    39,X           ; Get the first character and stash it
         STAA    XYCHA
 
         LDAB    #17            ; There are 17 characters in the whole message
@@ -114,10 +114,14 @@ SPLASH  JSR     STR            ; Store A/B/X
         BEQ     .SELPLY        ; If so, toggle the "Player" indicator.
         CMPA    NOUGHT         ; Did they press "O" ?
         BEQ     .NOUGHT
-        INC     TURN           ; Cross's turn first
-        LDAA    #1             ; Store that cross is going first
-        
+        CMPA    CROSS          ; Did they press "X" ?
+        BEQ     .CROSS
+        BRA     .LOOP
+.CROSS  LDAA    #1             ; Cross's turn first
+        STAA    TURN           ; Store that cross is going first
+        RTS
 .NOUGHT
+        CLR     TURN
         RTS
 
 .RESET  CLR     PLAY1S         ; Clear player 1 score
@@ -131,21 +135,22 @@ SPLASH  JSR     STR            ; Store A/B/X
 
 .SELPLY LDAB    #16            ; Load AccB with the row number of the Player 1 name
         LDAA    PLAYER         ; Switch selection between players
+        CMPA    #1
         BEQ     .SEL2          ; If Player 1 is current, then switch to Player 2
                         
-
 .SEL1   LDAA    SPACE          ; Switch to Player 1 
         JSR     .P2
         LDAA    EQUALS
         JSR     .P1
-        CLR     PLAYER
+        LDAA    #1
+        STAA    PLAYER
         JMP     .LOOP
         
 .SEL2   LDAA    SPACE          ; Switch to Player 2
         JSR     .P1
         LDAA    EQUALS
         JSR     .P2
-        LDAA    #1
+        LDAA    #2
         STAA    PLAYER
         JMP     .LOOP
 
@@ -224,12 +229,12 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
         LDAA    DISPLO         ; X-coordinate for O-piece display
         JSR     PRNTO          ; Print a large O-piece
-        RTS
+        BRA     .REST
 .CROSS  LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
         LDAA    DISPLX         ; X-coordinate for X-piece display
         JSR     PRNTX          ; Print a large X-piece
         
-        JSR     HOME           ; Print the help message top left of the board
+.REST   JSR     HOME           ; Print the help message top left of the board
         LDX     #HLPMSG
         JSR     PUTMSG
 
@@ -362,6 +367,7 @@ PUTPCE
 
         LDAA    #1
         STAA    TURN
+        JSR     SWPPLR
 
                                ; Falls through to .COMMON
 
@@ -583,13 +589,13 @@ WIN     JSR     STR            ; Store the A/B/X registers
         LDAA    DISPLX         ; X-coordinate for X-piece display
         JSR     PRNTB          ; Print a blank over the cross symbol
 
-; Determine who is the next player (and therefore who is the current player - award point to current player)
 
         LDAA    PLAYER
-        BEQ     .INCP1
-        INC     PLAY2S
+        CMPA    #1
+        BEQ     .INCP2
+        INC     PLAY1S
         JMP     .NORX
-.INCP1  INC     PLAY1S
+.INCP2  INC     PLAY2S
 
 .NORX   LDAA    TURN
         BNE     .N

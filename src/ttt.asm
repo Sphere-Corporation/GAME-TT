@@ -8,20 +8,14 @@
         .LI OFF                ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
         .SF SYMBOLS.SYM        ; CREATE SYMBOL FILE
 
-; START : Main entry point
+; BEGIN : Main entry point
 ;         Contains controller for the complete game; all other subroutines are called (in)directly from this.
 
-START   LDS     #$1FF          ; Stack below program
+BEGIN   LDS     #$1FF          ; Stack below program
                                ; MUST be first line of code
 
-        JSR     SPLASH         ; Splash Screen
-                               ; AccA contains the key pressed
-        CMPA    NOUGHT         ; Did they press "O" ?
-        BEQ     .NOUGHT
-        INC     TURN           ; Cross's turn first
-        LDAA    #1             ; Store that cross is going first
-        
-.NOUGHT JSR     BOARD          ; Display Board
+START   JSR     SPLASH         ; Splash Screen
+        JSR     BOARD          ; Display Board
         JSR     INIT           ; Initialise the game
         JSR     GLOOP          ; Main Loop
         BRA     START          ; Go again

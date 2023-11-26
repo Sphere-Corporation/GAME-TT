@@ -86,7 +86,7 @@ def cli(config, build, silent):
     message = '\n' + _package_name + '(Version ' + _version + ') - (c) 2023 Andrew Shapton, Portions (c) 2023 Ben Zotto\n'
     if not(silent):
         click.secho(message,fg="bright_blue")
-
+        
     MAIN_CONFIG_FILE = config
     # Check supply of main configuration file
     try:
