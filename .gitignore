@@ -5,6 +5,11 @@ build.asm
 ttt.exe
 ttt.exe.js
 
+# Ignore MAC files
 .DS_Store
 
-symbols.sym
+# Ignore generated symbol files
+SYMBOLS.SYM
+
+# Ignore local build settings
+src/*.toml

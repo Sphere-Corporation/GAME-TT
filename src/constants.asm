@@ -32,10 +32,6 @@ DISPLY   .AS     #15           ; Y-coordinate for O- and X-piece display
 DISPLX   .AS     #29           ; X-coordinate for X-piece display
 DISPLO   .AS     #3            ; X-coordinate for O-piece display
 
-; Message Rotation positions
-RM1STCHR .AS     #39           ; Start X position of the rotating message
-RMLNGTH  .AS     #17           ; Length of message
-
 ; Board Positions
 PIECE    .AS     #5            ; Initial square number
 ;

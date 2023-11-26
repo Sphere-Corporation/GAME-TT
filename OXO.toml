@@ -24,9 +24,9 @@ flags           = [
                     # "silent"        # Don't produce any output (except errors)
 ]
 [Locations]
-convertEXEDir   = "/Users/andrew.shapton/MyProjects/sphere/HOMEBREW/TOOLS/CONVERT/"     # Location of convertEXE file
-srcDir          = "/Users/andrew.shapton/MyProjects/sphere/HOMEBREW/GAME-TT/src/"       # Location of assembler source code
-outputDir       = "/Users/andrew.shapton/MyProjects/sphere/HOMEBREW/GAME-TT/ASSETS/"    # Location of target assets
+convertEXEDir   = "/PATH/TO/CONVERT/EXE/WITH/TRAILING/SLASH/"              # Location of convertEXE file
+srcDir          = "/PATH/TO/ASSEMBLER/SOURCE/CODE/WITH/TRAILING/SLASH/"    # Location of assembler source code
+outputDir       = "/PATH/TO/OUTPUT/DIRECTORY/WITH/TRAILING/SLASH/"         # Location of target assets
 
 [Miscellaneous]
 buildASM        = "build.asm"       # Name of build file (with version etc inside)

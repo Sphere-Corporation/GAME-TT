@@ -2,8 +2,8 @@
 # 
 # build
 #
-# Build toolchain for OXO
-# Author : Andrew Shapton 
+# Build toolchain for Sphere-1 Executables
+# Author : Andrew Shapton - Portions (c) Ben Zotto 2023
 # Copyright (C) 2023
 #
 # Requires Python 3.9 or newer
@@ -22,17 +22,14 @@ import click
 # Define software characteristics
 _version = '0.0.1';
 _package_name = 'build';
-_message = '%(package)s (Version %(version)s): Build OXO';
+_message = '%(package)s (Version %(version)s): Sphere-1 Builder';
 
 # Define messages
-KEY_DOES_NOT_EXIST      = "Key: {0} does not exist."
-SECTION_DOES_NOT_EXIST  = "Configuration: {0} does not exist."
+CONFIG_FILE_DOES_NOT_EXIST  = "Configuration file {0} does not exist"
+KEY_DOES_NOT_EXIST          = "Configuration Key: {0} does not exist."
+SECTION_DOES_NOT_EXIST      = "Configuration Section: {0} does not exist within {1}."
 
-# Define the master configuration file
-MASTER_CONFIG_FILE = "build.toml"
 
-# Define the configuration file for this build
-THIS_CONFIG_FILE = "OXO.toml"
 
 def date_2_julian_string (date):
     return str(date.strftime('%Y')) + date.strftime('%j')
@@ -46,12 +43,12 @@ def get_key(config_info, key, default):
     return _key
 
 
-def default_key(config_info, key, default, required):
+def default_key(config_info, key, default, required, section, filename):
     ''' Check to see if a key exists, and return an error if the key doesn't exist or has a null value, but only if the key is optional, return the value/default otherwise'''
     key_value = get_key(config_info, key, default)
     if (key_value) == default:
         if required:            
-            error_message = KEY_DOES_NOT_EXIST.format(key)
+            error_message = KEY_DOES_NOT_EXIST.format(key,section,filename)
             click.secho(error_message, fg="red")
             exit() 
         else:
@@ -59,14 +56,14 @@ def default_key(config_info, key, default, required):
     return key_value
 
 
-def validate_section(config_info, section, silent, spaces):
+def validate_section(config_info, section, silent, spaces, filename):
     output = ' ' * spaces + section
     if not(silent):
         click.secho(output, fg="blue") 
     if _ := config_info.get(section):
         pass
     else:
-        error_message = SECTION_DOES_NOT_EXIST.format(section)
+        error_message = SECTION_DOES_NOT_EXIST.format(section,filename)
         click.secho(error_message, fg="red")
         exit()
 
@@ -77,75 +74,106 @@ def construct_build_line(build):
     return fullline
 
 @click.command()
+@click.option("--config","-c", help="Configuration file",required=False,default="config.toml")
 @click.option("--build","-b", help="Supply a build number",required=False,default="NONE")
 @click.option("--silent","-s", help="Silent (no output).",required=False,default=False,is_flag=True)
 @click.version_option(version=_version, package_name=_package_name, message=_message)
-def cli(build, silent):
+def cli(config, build, silent):
     
     # Determine build number
     if build == "NONE":
         build = date_2_julian_string(datetime.now()) + "-" + datetime.now().strftime('%H:%M');
-    message = '\n' + _package_name + '(Version ' + _version + '): Building OXO - (c) 2023 Andrew Shapton, Portions (c) 2023 Ben Zotto\n'
+    message = '\n' + _package_name + '(Version ' + _version + ') - (c) 2023 Andrew Shapton, Portions (c) 2023 Ben Zotto\n'
     if not(silent):
         click.secho(message,fg="bright_blue")
-        click.secho('Building Version: ' + build + '\n', fg="blue")
 
+    MAIN_CONFIG_FILE = config
+    # Check supply of main configuration file
+    try:
+        with open(MAIN_CONFIG_FILE, 'r') as f:
+            config = toml.load(f)
+    except FileNotFoundError:            
+        error_message = CONFIG_FILE_DOES_NOT_EXIST.format(MAIN_CONFIG_FILE)
+        click.secho(error_message, fg="red")
+        exit()
+    
     # Read config file 
     if not(silent):
-        click.secho('Acquiring master configuration from ',nl=False, fg="blue")
-        click.secho(MASTER_CONFIG_FILE,nl=False, fg='yellow')
-        click.secho('.\n\nValidating master configuration:', nl=False , fg="blue")
+        click.secho('Acquiring main configuration from ',nl=False, fg="blue")
+        click.secho(MAIN_CONFIG_FILE,nl=False, fg='yellow')
+        click.secho('.\n\nValidating Main Configuration:', nl=False , fg="blue")
         
-    with open(MASTER_CONFIG_FILE, 'r') as f:
-        mconfig = toml.load(f)
+    # Validate the existence of the Config section    
+    validate_section(config,"Config", silent,1,MAIN_CONFIG_FILE)
     
-    # Validating AssembledConfig
-    validate_section(mconfig,"AssemblerConfig", silent, 1)
-    
-    # Get configuration from config file
-    
-    assembler       = default_key(mconfig["AssemblerConfig"], "assembler", "", True)    # Both these keys have been checked and found to exist
-    assemblerDir    = default_key(mconfig["AssemblerConfig"], "assemblerDir", "", True) # so no defaults are required.
-    
+    MASTER_CONFIG_FILE  = default_key(config["Config"], "build", "", True,'Config',MAIN_CONFIG_FILE) # Both these keys have been checked and found to exist
+    THIS_CONFIG_FILE    = default_key(config["Config"], "this", "", True,'Config',MAIN_CONFIG_FILE)  # so no defaults are required.
+
+    # Check supply of build setup configuration file
+    try:
+        with open(MASTER_CONFIG_FILE, 'r') as f:
+            bsconfig = toml.load(f)
+    except FileNotFoundError:            
+        error_message = CONFIG_FILE_DOES_NOT_EXIST.format(MASTER_CONFIG_FILE)
+        click.secho(error_message, fg="red")
+        exit()
     
     # Read build config file 
     if not(silent):
-        click.secho('\nAcquiring build configuration from ', nl=False, fg="blue")
-        click.secho(THIS_CONFIG_FILE,nl=False, fg='yellow')
-        click.secho('.\n\nValidating build configuration:', nl=False , fg="blue")
-
-    with open(THIS_CONFIG_FILE, 'r') as f:
-        config = toml.load(f)
+        click.secho('\nAcquiring Build Setup configuration from ',nl=False, fg="blue")
+        click.secho(MASTER_CONFIG_FILE,nl=False, fg='yellow')
+        click.secho('.\n\nValidating Build Setup configuration:', nl=False , fg="blue")
         
-    validate_section(config,"Locations", silent,1)
-    validate_section(config,"BuildParameters", silent,32)
-    validate_section(config,"Miscellaneous", silent,32)
+    # Validating AssembledConfig
+    validate_section(bsconfig,"AssemblerConfig", silent, 1, MASTER_CONFIG_FILE)
+    
+    # Get configuration from config file
+    
+    assembler       = default_key(bsconfig["AssemblerConfig"], "assembler", "", True,'AssemblerConfig', MASTER_CONFIG_FILE)    # Both these keys have been checked and found to exist
+    assemblerDir    = default_key(bsconfig["AssemblerConfig"], "assemblerDir", "", True,'AssemblerConfig', MASTER_CONFIG_FILE) # so no defaults are required.
+    
+    # Check supply of the specific build configuration file
+    try:
+        with open(THIS_CONFIG_FILE, 'r') as f:
+            config = toml.load(f)
+    except FileNotFoundError:            
+        error_message = CONFIG_FILE_DOES_NOT_EXIST.format(THIS_CONFIG_FILE)
+        click.secho(error_message, fg="red")
+        exit()
+
+    # Read build config file 
+    if not(silent):
+        click.secho('\nAcquiring Build configuration from ', nl=False, fg="blue")
+        click.secho(THIS_CONFIG_FILE,nl=False, fg='yellow')
+        click.secho('.\n\nValidating Build configuration:', nl=False , fg="blue")
+
+    validate_section(config,"Locations", silent,1, THIS_CONFIG_FILE)
+    validate_section(config,"BuildParameters", silent,32, THIS_CONFIG_FILE)
+    validate_section(config,"Miscellaneous", silent,32, THIS_CONFIG_FILE)
         
     # Validate non-blankness of mandatory parameters
     
-    convertEXEDir   = default_key(config["Locations"], "convertEXEDir", "N/A", True)
-    srcDir          = default_key(config["Locations"], "srcDir", "N/A", True)
-    outputDir       = default_key(config["Locations"], "outputDir", "N/A", True)
-    sourceFile      = default_key(config["BuildParameters"], "sourceFile", "N/A",True)                
-    assembledFile   = default_key(config["BuildParameters"], "assembledFile", "N/A", True)
-    prefix          = default_key(config["BuildParameters"],"prefix", "N/A", True)
-    base            = default_key(config["BuildParameters"],"base", "", True)
-    title           = default_key(config["BuildParameters"],"title", "", True)
-    vcass           = default_key(config["BuildParameters"],"vcass", "", False)
-    js              = default_key(config["BuildParameters"],"js", "", False)
-    flags           = default_key(config["BuildParameters"],"flags", None, False)
-    cassette        = default_key(config["BuildParameters"],"cassette", "", False)
+    convertEXEDir   = default_key(config["Locations"], "convertEXEDir", "N/A", True, "Locations", THIS_CONFIG_FILE)
+    srcDir          = default_key(config["Locations"], "srcDir", "N/A", True, "Locations", THIS_CONFIG_FILE)
+    outputDir       = default_key(config["Locations"], "outputDir", "N/A", True, "Locations", THIS_CONFIG_FILE)
+    sourceFile      = default_key(config["BuildParameters"], "sourceFile", "N/A",True,"BuildParameters", THIS_CONFIG_FILE)                
+    assembledFile   = default_key(config["BuildParameters"], "assembledFile", "N/A", True,"BuildParameters", THIS_CONFIG_FILE)
+    prefix          = default_key(config["BuildParameters"],"prefix", "N/A", True,"BuildParameters", THIS_CONFIG_FILE)
+    base            = default_key(config["BuildParameters"],"base", "", True,"BuildParameters", THIS_CONFIG_FILE)
+    title           = default_key(config["BuildParameters"],"title", "", True,"BuildParameters", THIS_CONFIG_FILE)
+    vcass           = default_key(config["BuildParameters"],"vcass", "", False,"BuildParameters", THIS_CONFIG_FILE)
+    js              = default_key(config["BuildParameters"],"js", "", False,"BuildParameters", THIS_CONFIG_FILE)
+    flags           = default_key(config["BuildParameters"],"flags", None, False,"BuildParameters", THIS_CONFIG_FILE)
+    cassette        = default_key(config["BuildParameters"],"cassette", "", False,"BuildParameters", THIS_CONFIG_FILE)
     
-    buildASM        = default_key(config["Miscellaneous"],"buildASM", "", True)
-    
-    if not(silent):
-        click.secho('Constructing build version.\n', fg="blue")
-
-    fullline = construct_build_line(build)
-
-    buildASMFile = srcDir + buildASM
+    buildASM        = default_key(config["Miscellaneous"],"buildASM", "", True,"Miscellaneous", THIS_CONFIG_FILE)
     
     if not(silent):
+        click.secho('Building Version: ' + build + '\n', fg="blue")
+
+    if not(silent):
+        fullline = construct_build_line(build)
+        buildASMFile = srcDir + buildASM
         click.secho('Auto-generating build version file.\n', fg="blue")
 
     # Auto-generate build version file for inclusion in the splash screen
