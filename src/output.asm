@@ -78,7 +78,13 @@ SPLASH  JSR     STR            ; Store A/B/X
         LDAB    #16            ; Set Y co-ordinate of Player 2 score
         JSR     PRTXY          ; Output XYCHA at (18,16)
 
-        JSR     .SEL1          ; Default selection is Player 1
+        LDAA    PLAYER         ; Determine which is the player to select on first entry to the splash screen
+        CMPA    #2
+        BEQ     .S2 
+        JMP     .S1 
+.S2     JSR     .SEL1
+        BRA     .LOOP
+.S1     JSR     .SEL2          
 
         
 .LOOP   JSR     HOME           ; Place the cursor top left (and the corresponding CSRPTR value in X)

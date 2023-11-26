@@ -14,6 +14,9 @@
 BEGIN   LDS     #$1FF          ; Stack below program
                                ; MUST be first line of code
 
+        LDAA    #2             ; Initial (not to be reset) default is player 1
+        STAA    PLAYER         ; (NEEDS TO BE SET TO 2 since there is a SWPPLR call prior to display)
+
 START   JSR     SPLASH         ; Splash Screen
         JSR     BOARD          ; Display Board
         JSR     INIT           ; Initialise the game
