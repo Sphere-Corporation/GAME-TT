@@ -590,12 +590,22 @@ WIN     JSR     STR            ; Store the A/B/X registers
         JSR     PRNTB          ; Print a blank over the cross symbol
 
 
-        LDAA    PLAYER
-        CMPA    #1
+        LDAA    PLAYER         ; Increment the player score or rollover to zero
+        CMPA    #1             ; when the total reaches 9
         BEQ     .INCP2
+        LDAA    PLAY1S
+        CMPA    #9
+        BEQ     .ROLL1
         INC     PLAY1S
         JMP     .NORX
-.INCP2  INC     PLAY2S
+.ROLL1  CLR     PLAY1S
+        JMP     .NORX
+.INCP2  LDAA    PLAY2S
+        CMPA    #9
+        BEQ     .ROLL2
+        INC     PLAY2S
+        JMP     .NORX
+.ROLL2  CLR     PLAY2S
 
 .NORX   LDAA    TURN
         BNE     .N
