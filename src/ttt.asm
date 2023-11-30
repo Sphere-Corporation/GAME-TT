@@ -3,25 +3,22 @@
 ; All directives are specific to sbasm3, and may need to be changed for other assemblers
 
         .CR 6800               ; LOAD MC6800 CROSS OVERLAY
-        .TF ttt.exe,BIN        ; OUTPUT FILE TO TARGET.BIN IN BINARY FORMAT
+        .TF ttt.exe,BIN        ; OUTPUT FILE IN BINARY FORMAT
         .OR $0200              ; START OF ASSEMBLY ADDRESS
-        .LI ON                ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
+        .LI OFF                ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
         .SF SYMBOLS.SYM        ; CREATE SYMBOL FILE
 
-; START : Main entry point
+; Main entry point
 ;         Contains controller for the complete game; all other subroutines are called (in)directly from this.
 
-START   LDS     #$1FF          ; Stack below program
+        LDS     #$1FF          ; Stack below program
                                ; MUST be first line of code
 
-        JSR     SPLASH         ; Splash Screen
-        CLR     TURN
-                               ; AccA contains the key pressed
-        CMPA    NOUGHT         ; Did they press "O" ?
-        BEQ     .NOUGHT
-        INC     TURN           ; Cross's turn first
-        
-.NOUGHT JSR     BOARD          ; Display Board
+        LDAA    #2             ; Initial (not to be reset) default is player 1
+        STAA    PLAYER         ; (NEEDS TO BE SET TO 2 since there is a SWPPLR call prior to display)
+
+START   JSR     SPLASH         ; Splash Screen
+        JSR     BOARD          ; Display Board
         JSR     INIT           ; Initialise the game
         JSR     GLOOP          ; Main Loop
         BRA     START          ; Go again
@@ -37,5 +34,5 @@ START   LDS     #$1FF          ; Stack below program
 ; Constants and Variables
         .IN constants          ; Include constants
         .IN variables          ; Include variables for the program
-END
+.EN
 

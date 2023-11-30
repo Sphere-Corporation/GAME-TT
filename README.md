@@ -26,7 +26,7 @@
 
 
 ## Status
-This game is a 1.1.0 release. 
+This game is a 1.1.1 release. 
 
 There is a roadmap to other features for future releases [here](https://github.com/Sphere-Corporation/GAME-TT/milestones).
 
@@ -57,8 +57,9 @@ Clone the repo from GitHub, then run the build script:
 ```sh
 git clone https://github.com/Sphere-Corporation/GAME-TT.git`
 cd GAME-TT
-./build
+./build --config config.toml
 ```
+Prior to this, you must ensure that the paths to your source code, assembler and convertEXE tool are correctly defined in the appropriate toml configuration files. The lines to change are commented appropriately. **None of the other lines need to change unless you know what you are doing.**
 
 **You may need to change the build script according to your environment as it is designed to run on a Unix-like environment**
 

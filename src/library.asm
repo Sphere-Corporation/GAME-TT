@@ -4,6 +4,24 @@
 ;
 ;
 
+; List of functions to include in final assembly file. 
+; Define function name preceded by an underscore, with:
+;                                                .EQ 1 to include
+;                                                .EQ 0 to exclude
+_GTCHRAT        .EQ     1
+_MLTCHR         .EQ     1
+_GETCHRB        .EQ     1
+_PUTMSG         .EQ     1
+_CRLF           .EQ     1
+_MULTCR         .EQ     0
+_PRTXY          .EQ     1
+_CURXY          .EQ     1
+_CLS            .EQ     1
+
+;
+; Excluding functions not used can significantly reduce the executable size.
+;
+        .DO     _GTCHRAT=1
 ;===============================================================================================
 ; GTCHRAT: Get the character at the cursor position stored as below
 ; 
@@ -41,8 +59,9 @@ GTCHRAT
         JSR     RSTR           ; Restore A/B/X
         RTS
 ;===============================================================================================
+        .FI
 
-
+        .DO     _MLTCHR=1
 ;===============================================================================================
 ; MLTCHR: Prints a given char (n) times
 ;
@@ -75,8 +94,9 @@ MLTCHR
         BRA      .MLOOP
 .FINAL  RTS
 ;===============================================================================================
+        .FI
 
-
+        .DO     _GETCHRB=1
 ;===============================================================================================
 ; GETCHRB : Get a character from the keyboard without flashing the cursor
 ;     
@@ -105,8 +125,9 @@ GETCHRB LDAA    #$40           ; Load a mask for CA2 flag.
         LDAA    KBDPIA         ; Load AccA with the typed character
         RTS              
 ;===============================================================================================
+        .FI
 
-
+        .DO     _PUTMSG=1        
 ;===============================================================================================
 ; PUTMSG: Prints a zero-terminated message  
 ;
@@ -145,8 +166,9 @@ PUTMSG  JSR     STR            ; Store A/B/X
 ; Space to store the index register
 .MSGIDX  .DA     1             ; Reserved space for local variable
 ;===============================================================================================
+        .FI
 
-
+        .DO     _CRLF=1
 ;===============================================================================================
 ; CRLF: Emits a carriage return
 ;
@@ -177,8 +199,9 @@ CRLF    JSR     STR            ; Store A/B/X
         JSR     RSTR           ; Restore X/B/X
         RTS
 ;===============================================================================================
+        .FI
 
-
+        .DO     _MULTCR=1
 ;===============================================================================================
 ; MULTCR: Emits multiple blank lines
 ;
@@ -216,8 +239,9 @@ MULTCR  JSR     STR            ; Store A/B/X
 .MCRB  .DA     1               ; Scratch store for AccB
 
 ;===============================================================================================
+        .FI
 
-
+        .DO     _PRTXY=1
 ;===============================================================================================
 ; PRTXY: Prints a given char at co-ordinates (X,Y) on the screen (0,0) is top left
 ; 
@@ -251,10 +275,10 @@ PRTXY   JSR     STR
         RTS
 
 XYCHA   .DA     #0             ; Storage for character to print
-
 ;===============================================================================================
+        .FI
 
-
+        .DO     _CURXY=1
 ;===============================================================================================
 ; CURXY: Move the cursor to co-ordinates (X,Y) on the screen (0,0) is top left
 ;
@@ -267,7 +291,6 @@ XYCHA   .DA     #0             ; Storage for character to print
 ;  
 ; External definitions:
 ;       CSRPTR          (System - Cursor Pointer)
-;       XYCHA           1 byte
 ;       XCRD, YCRD      1 byte each
 ; Dependencies:
 ;
@@ -315,8 +338,9 @@ TOX     LDAB    XCRD
         BRA     .XAGAIN
 XCURXY  RTS
 ;===============================================================================================
+        .FI
 
-
+        .DO     _CLS=1
 ;===============================================================================================
 ; CLS: Clear the screen (make sure cursor starts of top left first)
 ;
@@ -341,3 +365,4 @@ CLS     JSR     HOME           ; Move cursor to top left
         JSR     CLEAR          ; Clear the screen
         RTS
 ;===============================================================================================
+        .FI

@@ -5,7 +5,7 @@ ROUND   JSR     STR
         LDAB    #$FF           ; Look at the status coming back - $FF is a draw
         CMPB    WDSTAT
         BEQ     .JDRAW   
-        LDAB    #1             ; a 1 indicates a Win
+        LDAB    #1             ; a 1 indicates a Win, so work out who has won.
         CMPB    WDSTAT
         BEQ     .JWIN
         JSR     RSTR
@@ -20,22 +20,28 @@ ROUND   JSR     STR
         BEQ     .INST
         CMPA    ENTER       
         BEQ     .ENT           ; ENTER Key
-        CMPA    ARROWR
+
+; Check with Hex codes for Arrows and WASD for cursor movement
+        CMPA    #$12           
         BEQ     .ARRR          ; Arrow Right
-        CMPA    WASDD
+        CMPA    #$44
         BEQ     .ARRR          ; WASD-D Right
-        CMPA    ARROWL
+
+        CMPA    #$14
         BEQ     .ARRL          ; Arrow Left
-        CMPA    WASDA
+        CMPA    #$41
         BEQ     .ARRL          ; WASD-A Left
-        CMPA    ARROWU
+
+        CMPA    #$11
         BEQ     .ARRU          ; Arrow Up
-        CMPA    WASDW
+        CMPA    #$57
         BEQ     .ARRU          ; WASD-W Up
-        CMPA    ARROWD
+
+        CMPA    #$13
         BEQ     .ARRD          ; Arrow Down
-        CMPA    WASDS
+        CMPA    #$53
         BEQ     .ARRD          ; WASD-W Down
+
         BRA     ROUND
 ; End of main game loop - subroutines in game loop appear below.
 
@@ -49,6 +55,8 @@ ROUND   JSR     STR
         CMPA    SPCOCC         ; Check if space is occupied
         BEQ     .AGAIN         ; No piece is required.
         JSR     PUTPCE         ; Determine which piece to place in CURSX/CURSY
+        
+
         BRA     .AROUND
 
 .ARRD   LDAB    CURSY          ; Ensure that we don't go down below the board.
@@ -104,4 +112,18 @@ ROUND   JSR     STR
 
 .AGAIN  JMP     ROUND
 
+
+
 DONE    RTS                    ; Exit Game Loop subroutine
+
+SWPPLR                         ; SWAP PLAYER VARIABLE OVER (1-2-1 etc)
+        LDAA    PLAYER
+        CMPA    #1
+        BEQ     .ONE
+        DECA
+        STAA    PLAYER
+        JMP     .DONE
+.ONE    INCA
+        STAA    PLAYER
+.DONE   
+        RTS
