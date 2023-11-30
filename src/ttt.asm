@@ -8,10 +8,10 @@
         .LI OFF                ; SWITCH OFF ASSEMBLY LISTING (EXCEPT ERRORS)
         .SF SYMBOLS.SYM        ; CREATE SYMBOL FILE
 
-; BEGIN : Main entry point
+; Main entry point
 ;         Contains controller for the complete game; all other subroutines are called (in)directly from this.
 
-BEGIN   LDS     #$1FF          ; Stack below program
+        LDS     #$1FF          ; Stack below program
                                ; MUST be first line of code
 
         LDAA    #2             ; Initial (not to be reset) default is player 1
@@ -34,5 +34,5 @@ START   JSR     SPLASH         ; Splash Screen
 ; Constants and Variables
         .IN constants          ; Include constants
         .IN variables          ; Include variables for the program
-END
+.EN
 

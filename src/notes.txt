@@ -1,6 +1,0 @@
-PLAYER      0 = Player 1 is selected    |  This is the 
-            1 = Player 2 is selected    |  current player
-
-TURN        0 if it's Cross's turn
-            1 if it's Nought's turn 
-

@@ -17,8 +17,11 @@
 ;       BUILD           Label for the build information
 ;       MSGAGN          Label for the "Press a key" lines
 ;       SPLSH1          Label for the title of the program
-;       SPLSH2          Label for the copyright line
-;
+;       PLAY1N          Player 1 name
+;       PLAY1S          Player 1 score
+;       PLAY2N          Player 2 name
+;       PLAY2S          Player 2 score
+;       PLAYER          Current player
 ;       XYCHA           Character to store the first character to go to the last character
 ;       KBDPIA          Address of PIA for KBD/2 (Only supports KBD/2)
 ;
@@ -28,6 +31,7 @@
 ;       CRLF
 ;       HOME    (System)
 ;       MLTCHR
+;       PPLYN
 ;       PUTMSG
 ;       RSTR
 ;       STR
@@ -39,8 +43,9 @@
 
 SPLASH  JSR     STR            ; Store A/B/X
         JSR     CLS            ; Clear the screen and output two lines of banner
-        LDAB    #2             ; Produce 2 blank lines
-        JSR     MULTCR
+        LDAA    ENTER
+        JSR     PUTCHR
+        JSR     PUTCHR         ; Produce 2 blank lines
         LDX     #SPLSH1        ; Output the Title of the program
         JSR     PUTMSG
         LDX     #BUILD         ; Show the build/version number
@@ -63,21 +68,8 @@ SPLASH  JSR     STR            ; Store A/B/X
         STAB    CURSY          ; Store it in CURSY
         JSR     PPLYN          ; Display the player 1 name
 
+        JSR     .DOSCORE       ; Display players scores on the splash screen
         
-        LDAB    #16            ; Set Y co-ordinate of Player 1 score
-        LDAA    PLAY1S         ; Get Player 1 score
-        ADDA    #48            ; Add 48 to the score to give an ASCII value
-        STAA    XYCHA          ; Store the ASCII score character in XYCHA
-        LDAA    #13            ; Set the X co-ordinate of the Player 1 score
-        JSR     PRTXY          ; Output XYCHA at (13,16)
-
-        LDAA    PLAY2S         ; Get Player 2 score
-        ADDA    #48            ; Add 48 to the score to give an ASCII value
-        STAA    XYCHA          ; Store the ASCII score character in XYCHA
-        LDAA    #18            ; Set the X co-ordinate of the Player 2 score
-        LDAB    #16            ; Set Y co-ordinate of Player 2 score
-        JSR     PRTXY          ; Output XYCHA at (18,16)
-
         LDAA    PLAYER         ; Determine which is the player to select on first entry to the splash screen
         CMPA    #2
         BEQ     .S2 
@@ -132,6 +124,7 @@ SPLASH  JSR     STR            ; Store A/B/X
 
 .RESET  CLR     PLAY1S         ; Clear player 1 score
         CLR     PLAY2S         ; Clear player 2 score 
+        JSR     .DOSCORE       ; Display the scores again
         BRA     .LOOP          ; When done, go back to the main loop
 
 .DISPQ  JSR     PRTXY          ; Display a "Selected" indicator around a specific player
@@ -169,7 +162,21 @@ SPLASH  JSR     STR            ; Store A/B/X
         LDAA    #23            ; For Player 2, set the X co-ordinate
         JSR     .DISPQ         ; Display the player selection
         RTS
+.DOSCORE        
+        LDAB    #16            ; Set Y co-ordinate of Player 1 score
+        LDAA    PLAY1S         ; Get Player 1 score
+        ADDA    #48            ; Add 48 to the score to give an ASCII value
+        STAA    XYCHA          ; Store the ASCII score character in XYCHA
+        LDAA    #13            ; Set the X co-ordinate of the Player 1 score
+        JSR     PRTXY          ; Output XYCHA at (13,16)
 
+        LDAA    PLAY2S         ; Get Player 2 score
+        ADDA    #48            ; Add 48 to the score to give an ASCII value
+        STAA    XYCHA          ; Store the ASCII score character in XYCHA
+        LDAA    #18            ; Set the X co-ordinate of the Player 2 score
+        LDAB    #16            ; Set Y co-ordinate of Player 2 score
+        JSR     PRTXY          ; Output XYCHA at (18,16)
+        RTS
 ;===============================================================================================
 
 
@@ -232,13 +239,10 @@ BOARD   JSR     CLS            ; Clear the screen ready to show board
         LDAA    TURN
         CMPA    #1
         BEQ     .CROSS 
-        LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
-        LDAA    DISPLO         ; X-coordinate for O-piece display
-        JSR     PRNTO          ; Print a large O-piece
+        JSR     PRTDFO         ; Print large Nought
         BRA     .REST
-.CROSS  LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
-        LDAA    DISPLX         ; X-coordinate for X-piece display
-        JSR     PRNTX          ; Print a large X-piece
+.CROSS  JSR     PRTDFX         ; Print large Cross
+
         
 .REST   JSR     HOME           ; Print the help message top left of the board
         LDX     #HLPMSG
@@ -334,7 +338,7 @@ PUTPCE
         INC     PIECES         ; Increment the number of pieces on the board
         LDAA    TURN           ; Find out who's turn it is.
         BEQ     .DO0
-.DOX    JSR     .COMMON        ; This is Cross's turn so go get the X/Y positions
+        JSR     .COMMON        ; This is Cross's turn so go get the X/Y positions
         JSR     PRNTX          ; Print Cross at correct location
         JSR     .OXOD          ; Pop it in the board matrix
         LDAA    CROSS          ; Get the cross symbol
@@ -342,9 +346,7 @@ PUTPCE
         LDAA    DISPLX
         LDAB    DISPLY
         JSR     PRNTB          ; Remove old symbol
-        LDAA    DISPLO
-        LDAB    DISPLY        
-        JSR     PRNTO          ; Print large Nought
+        JSR     PRTDFO         ; Print large Nought
         CLR     TURN           ; Reset the TURN to zero (indicating next is nought's turn)
         JSR     SWPPLR
 
@@ -367,9 +369,7 @@ PUTPCE
         LDAA    DISPLO
         LDAB    DISPLY
         JSR     PRNTB          ; Remove old symbol
-        LDAA    DISPLX
-        LDAB    DISPLY
-        JSR     PRNTX          ; Print large Cross
+        JSR     PRTDFX         ; Print large Cross
 
         LDAA    #1
         STAA    TURN
@@ -496,7 +496,6 @@ INSTR   JSR     STR
         LDAA    SPACE          ; Use a " " character
         LDAB    #25            ; Print it 25 times to erase "Help" text
         JSR     MLTCHR
-        
         RTS
 .SHOW   JSR     PUTMSG
         JSR     RSTR
@@ -567,13 +566,8 @@ DRAW    JSR     STR            ; Store A/B/X
         JSR     HOME           ; Put cursor at (0,0)
         LDX     #DRWMSG        ; Get address of "Draw Game" message
         JSR     PUTMSG         ; Put the messge on the screen
-        LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
-        LDAA    DISPLO         ; X-coordinate for O-piece display
-        JSR     PRNTO          ; Print a nought symbol
-        LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
-        LDAA    DISPLX         ; X-coordinate for X-piece display
-        JSR     PRNTX          ; Print a cross symbol
-
+        JSR     PRTDFO         ; Print a large-O in the default position
+        JSR     PRTDFX         ; Print a large-X in the default position
         JSR     GETCHRB        ; Wait for a key press
         JSR     RSTR           ; Restore A/B/X
         RTS
@@ -617,4 +611,24 @@ WIN     JSR     STR            ; Store the A/B/X registers
         JSR     PUTMSG         ; Print the win line
         JSR     GETCHRB        ; Await a keypress
         JSR     RSTR           ; Restore the A/B/X registers
+        RTS
+
+;===============================================================================================
+; PRTDFO: Display Large O in the default position
+;
+; 
+
+PRTDFO  LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
+        LDAA    DISPLO         ; X-coordinate for O-piece display
+        JSR     PRNTO          ; Print a nought symbol
+        RTS
+
+;===============================================================================================
+; PRTDFX: Display Large X in the default position
+;
+; 
+
+PRTDFX  LDAB    DISPLY         ; Y-coordinate for O- and X-piece display
+        LDAA    DISPLX         ; X-coordinate for X-piece display
+        JSR     PRNTX          ; Print a cross symbol
         RTS
