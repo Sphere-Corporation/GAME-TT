@@ -44,8 +44,8 @@ BLINEV  .AZ    /             !     !/                    ;
 BLINEH  .AZ    /        -----+-----+-----/               ; Text to be used as part of the board 
 HLPMSG  .AZ    /H-HELP ON/,#$2F,/OFF/                    ;
 
-SPLSH1  .AZ    /    == NOUGHTS & CROSSES  ==/,#$0D,#$0D,#$0D,#$0D,#$0D,#$0D,/    (C) ANDREW SHAPTON  2023/,#$0D                         ; Text for the splash screen
-MSGAGN  .AZ    #$0D,/HTTP:/,#$2F,#$2F,/TINYURL.COM/,#$2F,/SPHERE-GAMETT/,#$0D,/TO START A GAME PRESS "O" OR "X""S" RESET SCORES,"=" SWAP FIRST/   ; Rest of the text for the splash screen
+SPLSH1  .AZ    #$0D,/    == NOUGHTS & CROSSES  ==/,#$0D,#$0D,#$0D,#$0D,#$0D,#$0D,/    (C) ANDREW SHAPTON  2023/,#$0D                         ; Text for the splash screen
+MSGAGN  .AZ    #$0D,/HTTP:/,#$2F,#$2F,/TINYURL.COM/,#$2F,/SPHERE-GAMETT/,#$0D,/ TO START A GAME USE "O" OR "X" "S" RESET SCORES,"=" SWAP FIRST/   ; Rest of the text for the splash screen
 
 WINLN   .AZ     /  WINS!-PRESS A KEY FOR NEW GAME      / ; Win line
 
