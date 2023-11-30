@@ -190,7 +190,6 @@ CHKWD
 ; SPCOCC : 0 if is free, 1 if it's occupied.
 
 CHOCC   JSR     STR
-        CLR     SPCOCC         ; Assume space is free
         CLRA                   ; Clear AccA 
         CLRB                   ; Clear AccB
         LDX     #IBOARD        ; Load the start of the board
@@ -239,4 +238,5 @@ INIT
         LDAB    ICURSY
         STAB    CURSY          ; Store initial cursor position
         JSR     PRTXY          ; Print the cursor there
+
         RTS

@@ -1,0 +1,32 @@
+# OXO.toml
+#
+# Configuration for OXO build
+#
+# (c) Andrew Shapton 2023
+#
+
+title = "OXO build Configuration TOML file"
+
+[BuildParameters]
+sourceFile      = "ttt.asm"         # Source assembler file                             (Required)
+assembledFile   = "ttt.exe"         # Output assembled executable file                  (Required)
+prefix          = "OX"              # Prefix for the blocks                             (Required)
+base            = "0200"            # Base adress for origination/load of executable    (Required)
+title           = "OXO"             # Title of program for Virtual Sphere               (Required)
+vcass           = "ttt"             # Filename for binary Virtual Sphere cassette       
+js              = "ttt"             # Filename for Javascript Virtual Sphere cassette   
+cassette        = "ttt"             # Filename for .wav file for cassette audio         
+
+# (Un)comment flags as required
+flags           = [
+                    "noheader",     # Don't generate a Javascript header for the Virtual Sphere
+                    "movebin",      # Move the binary to the assets location post-build
+                    # "silent"        # Don't produce any output (except errors)
+]
+[Locations]
+convertEXEDir   = "/PATH/TO/CONVERT/EXE/WITH/TRAILING/SLASH/"              # Location of convertEXE file
+srcDir          = "/PATH/TO/ASSEMBLER/SOURCE/CODE/WITH/TRAILING/SLASH/"    # Location of assembler source code
+outputDir       = "/PATH/TO/OUTPUT/DIRECTORY/WITH/TRAILING/SLASH/"         # Location of target assets
+
+[Miscellaneous]
+buildASM        = "build.asm"       # Name of build file (with version etc inside)

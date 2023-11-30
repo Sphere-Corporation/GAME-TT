@@ -4,9 +4,12 @@ build.asm
 # Ignore generated binary files
 ttt.exe
 ttt.exe.js
-*.wav
-*.WAV
 
+# Ignore MAC files
 .DS_Store
 
-symbols.sym
+# Ignore generated symbol files
+SYMBOLS.SYM
+
+# Ignore local build settings
+src/*.toml

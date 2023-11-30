@@ -3,49 +3,6 @@
 #echo "DO NOT USE UNLESS YOU ARE ACTIVELY DEVELOPING THIS SOFTARE"
 #echo "COMMENT OUT THE BELOW LINE IF YOU ARE"
 #exit
-
-# Set default build value
-BUILD=`date +"%Y%m%d-%T" `
-
-# For all location environment variables, ensure to use a trailing slash
-# Set defaults for assembler and converter tools
-SBASM_DIR=
-CONVERTEXE_DIR=
-SRC_DIR=
-OUTPUT_DIR=
-
-# Set location of SBASM (comment out if on search path)
-SBASM_DIR=../../../SOFTWARE/asm/sbasm3/
-# Set location of convertEXE (comment out if on search path)
-CONVERTEXE_DIR=../TOOLS/CONVERT/
-# Set location of output files (mandatory)
-OUTPUT_DIR=OUTPUT/
-# Set location of source files
-SRC_DIR=src/
-
-
-while getopts ":b:" option; do
-   case $option in
-      b) # Get Build Number
-         BUILD=$OPTARG;;
-   esac
-done
-
-V="VERSION:$BUILD"
-LENGTH=${#V}
-let SPC=(32-$LENGTH)/2
-P=`printf "BUILD   .AZ  /"`
-Q=`printf '%0.s!' $(seq 1 $SPC) | tr "!" " "`
-FULLINE="$P$Q$V/"
-echo "$FULLINE" > ${SRC_DIR}build.asm
-cd $SRC_DIR
-${SBASM_DIR}sbasm ttt.asm
-cd - > /dev/null
-${CONVERTEXE_DIR}convertEXE --input ${SRC_DIR}ttt.exe --prefix OX --base 0200 --title "OXO" --noheader  --cassette OXO
-rm ${SRC_DIR}build.asm
-
+./build --config src/config.toml
 cp ../../SOFTWARE/site/devsite/cassette_temp.js ../../SOFTWARE/site/devsite/cassette.js
-cat ${SRC_DIR}ttt.exe.js >> ../../SOFTWARE/site/devsite/cassette.js
-mv ${SRC_DIR}ttt.exe $OUTPUT_DIR
-mv ${SRC_DIR}ttt.exe.js $OUTPUT_DIR
-mv *.wav $OUTPUT_DIR
+cat /Users/andrew.shapton/MyProjects/sphere/HOMEBREW/GAME-TT/ASSETS/ttt.js >> ../../SOFTWARE/site/devsite/cassette.js

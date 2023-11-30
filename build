@@ -1,45 +1,274 @@
+#!/usr/bin/env python3
+# 
+# build
+#
+# Build toolchain for Sphere-1 Executables
+# Author : Andrew Shapton - Portions (c) Ben Zotto 2023
+# Copyright (C) 2023
+#
+# Requires Python 3.9 or newer
+#
 
-#!/bin/bash
+# Import system libraries
+import os
 
-# Set default build value
-BUILD=`date +"%Y%m%d-%T" `
+from datetime import datetime   
+import subprocess
+import toml 
 
-# For all location environment variables, ensure to use a trailing slash
-# Set defaults for assembler and converter tools
-SBASM_DIR=
-CONVERTEXE_DIR=
-# Set location of SBASM (comment out if on search path)
-SBASM_DIR=../../../SOFTWARE/asm/sbasm3/
-# Set location of convertEXE (comment out if on search path)
-CONVERTEXE_DIR=../TOOLS/CONVERT/
-# Set location of output files (mandatory)
-OUTPUT_DIR=OUTPUT/
-# Set location of source files (mandatory)
-SRC_DIR=src/
+# Import 3rd party library
+import click
+
+# Define software characteristics
+_version = '0.0.1';
+_package_name = 'build';
+_message = '%(package)s (Version %(version)s): Sphere-1 Builder';
+
+# Define messages
+CONFIG_FILE_DOES_NOT_EXIST  = "Configuration file {0} does not exist"
+KEY_DOES_NOT_EXIST          = "Configuration Key: {0} does not exist."
+SECTION_DOES_NOT_EXIST      = "Configuration Section: {0} does not exist within {1}."
 
 
-while getopts ":b:" option; do
-   case $option in
-      b) # Get Build Number
-         BUILD=$OPTARG;;
-   esac
-done
 
-# Create output directory if it doesnt exist
-mkdir -p $OUTPUT_DIR
+def date_2_julian_string (date):
+    return str(date.strftime('%Y')) + date.strftime('%j')
 
-V="VERSION:$BUILD"
-LENGTH=${#V}
-let SPC=(32-$LENGTH)/2
-P=`printf "BUILD   .AZ  /"`
-Q=`printf '%0.s!' $(seq 1 $SPC) | tr "!" " "`
-FULLINE="$P$Q$V/"
-echo "$FULLINE" > ${SRC_DIR}build.asm
-cd $SRC_DIR
-${SBASM_DIR}sbasm ttt.asm
-cd - > /dev/null
-${CONVERTEXE_DIR}convertEXE --input ${SRC_DIR}ttt.exe --prefix TD --base 0200 --title "OXO" --noheader --cassette OXO
-mv ${SRC_DIR}ttt.exe $OUTPUT_DIR
-mv ${SRC_DIR}ttt.exe.js $OUTPUT_DIR
-mv *.wav $OUTPUT_DIR
-rm ${SRC_DIR}build.asm
+
+def get_key(config_info, key, default):
+    if key in config_info:
+        _key   = config_info[key]
+    else:
+        _key   = default
+    return _key
+
+
+def default_key(config_info, key, default, required, section, filename):
+    ''' Check to see if a key exists, and return an error if the key doesn't exist or has a null value, but only if the key is optional, return the value/default otherwise'''
+    key_value = get_key(config_info, key, default)
+    if (key_value) == default:
+        if required:            
+            error_message = KEY_DOES_NOT_EXIST.format(key,section,filename)
+            click.secho(error_message, fg="red")
+            exit() 
+        else:
+            return key_value
+    return key_value
+
+
+def validate_section(config_info, section, silent, spaces, filename):
+    output = ' ' * spaces + section
+    if not(silent):
+        click.secho(output, fg="blue") 
+    if _ := config_info.get(section):
+        pass
+    else:
+        error_message = SECTION_DOES_NOT_EXIST.format(section,filename)
+        click.secho(error_message, fg="red")
+        exit()
+
+def construct_build_line(build):
+    version_literal="VERSION:" + build
+    spc = (round((32-(len(version_literal)))/2))
+    fullline = "BUILD   .AZ  /" + ''.join([char*spc for char in ' ']) + version_literal + '/'
+    return fullline
+
+@click.command()
+@click.option("--config","-c", help="Configuration file",required=False,default="config.toml")
+@click.option("--build","-b", help="Supply a build number",required=False,default="NONE")
+@click.option("--silent","-s", help="Silent (no output).",required=False,default=False,is_flag=True)
+@click.version_option(version=_version, package_name=_package_name, message=_message)
+def cli(config, build, silent):
+    
+    # Determine build number
+    if build == "NONE":
+        build = date_2_julian_string(datetime.now()) + "-" + datetime.now().strftime('%H:%M');
+    message = '\n' + _package_name + '(Version ' + _version + ') - (c) 2023 Andrew Shapton, Portions (c) 2023 Ben Zotto\n'
+    if not(silent):
+        click.secho(message,fg="bright_blue")
+        
+    MAIN_CONFIG_FILE = config
+    # Check supply of main configuration file
+    try:
+        with open(MAIN_CONFIG_FILE, 'r') as f:
+            config = toml.load(f)
+    except FileNotFoundError:            
+        error_message = CONFIG_FILE_DOES_NOT_EXIST.format(MAIN_CONFIG_FILE)
+        click.secho(error_message, fg="red")
+        exit()
+    
+    # Read config file 
+    if not(silent):
+        click.secho('Acquiring main configuration from ',nl=False, fg="blue")
+        click.secho(MAIN_CONFIG_FILE,nl=False, fg='yellow')
+        click.secho('.\n\nValidating Main Configuration:', nl=False , fg="blue")
+        
+    # Validate the existence of the Config section    
+    validate_section(config,"Config", silent,1,MAIN_CONFIG_FILE)
+    
+    MASTER_CONFIG_FILE  = default_key(config["Config"], "build", "", True,'Config',MAIN_CONFIG_FILE) # Both these keys have been checked and found to exist
+    THIS_CONFIG_FILE    = default_key(config["Config"], "this", "", True,'Config',MAIN_CONFIG_FILE)  # so no defaults are required.
+
+    # Check supply of build setup configuration file
+    try:
+        with open(MASTER_CONFIG_FILE, 'r') as f:
+            bsconfig = toml.load(f)
+    except FileNotFoundError:            
+        error_message = CONFIG_FILE_DOES_NOT_EXIST.format(MASTER_CONFIG_FILE)
+        click.secho(error_message, fg="red")
+        exit()
+    
+    # Read build config file 
+    if not(silent):
+        click.secho('\nAcquiring Build Setup configuration from ',nl=False, fg="blue")
+        click.secho(MASTER_CONFIG_FILE,nl=False, fg='yellow')
+        click.secho('.\n\nValidating Build Setup configuration:', nl=False , fg="blue")
+        
+    # Validating AssembledConfig
+    validate_section(bsconfig,"AssemblerConfig", silent, 1, MASTER_CONFIG_FILE)
+    
+    # Get configuration from config file
+    
+    assembler       = default_key(bsconfig["AssemblerConfig"], "assembler", "", True,'AssemblerConfig', MASTER_CONFIG_FILE)    # Both these keys have been checked and found to exist
+    assemblerDir    = default_key(bsconfig["AssemblerConfig"], "assemblerDir", "", True,'AssemblerConfig', MASTER_CONFIG_FILE) # so no defaults are required.
+    
+    # Check supply of the specific build configuration file
+    try:
+        with open(THIS_CONFIG_FILE, 'r') as f:
+            config = toml.load(f)
+    except FileNotFoundError:            
+        error_message = CONFIG_FILE_DOES_NOT_EXIST.format(THIS_CONFIG_FILE)
+        click.secho(error_message, fg="red")
+        exit()
+
+    # Read build config file 
+    if not(silent):
+        click.secho('\nAcquiring Build configuration from ', nl=False, fg="blue")
+        click.secho(THIS_CONFIG_FILE,nl=False, fg='yellow')
+        click.secho('.\n\nValidating Build configuration:', nl=False , fg="blue")
+
+    validate_section(config,"Locations", silent,1, THIS_CONFIG_FILE)
+    validate_section(config,"BuildParameters", silent,32, THIS_CONFIG_FILE)
+    validate_section(config,"Miscellaneous", silent,32, THIS_CONFIG_FILE)
+        
+    # Validate non-blankness of mandatory parameters
+    
+    convertEXEDir   = default_key(config["Locations"], "convertEXEDir", "N/A", True, "Locations", THIS_CONFIG_FILE)
+    srcDir          = default_key(config["Locations"], "srcDir", "N/A", True, "Locations", THIS_CONFIG_FILE)
+    outputDir       = default_key(config["Locations"], "outputDir", "N/A", True, "Locations", THIS_CONFIG_FILE)
+    sourceFile      = default_key(config["BuildParameters"], "sourceFile", "N/A",True,"BuildParameters", THIS_CONFIG_FILE)                
+    assembledFile   = default_key(config["BuildParameters"], "assembledFile", "N/A", True,"BuildParameters", THIS_CONFIG_FILE)
+    prefix          = default_key(config["BuildParameters"],"prefix", "N/A", True,"BuildParameters", THIS_CONFIG_FILE)
+    base            = default_key(config["BuildParameters"],"base", "", True,"BuildParameters", THIS_CONFIG_FILE)
+    title           = default_key(config["BuildParameters"],"title", "", True,"BuildParameters", THIS_CONFIG_FILE)
+    vcass           = default_key(config["BuildParameters"],"vcass", "", False,"BuildParameters", THIS_CONFIG_FILE)
+    js              = default_key(config["BuildParameters"],"js", "", False,"BuildParameters", THIS_CONFIG_FILE)
+    flags           = default_key(config["BuildParameters"],"flags", None, False,"BuildParameters", THIS_CONFIG_FILE)
+    cassette        = default_key(config["BuildParameters"],"cassette", "", False,"BuildParameters", THIS_CONFIG_FILE)
+    
+    buildASM        = default_key(config["Miscellaneous"],"buildASM", "", True,"Miscellaneous", THIS_CONFIG_FILE)
+    
+    if not(silent):
+        click.secho('Building Version: ' + build + '\n', fg="blue")
+
+    if not(silent):
+        fullline = construct_build_line(build)
+        buildASMFile = srcDir + buildASM
+        click.secho('Auto-generating build version file.\n', fg="blue")
+
+    # Auto-generate build version file for inclusion in the splash screen
+    with open(buildASMFile,'w') as f:
+        f.write('; AUTO-GENERATED: DO NOT MODIFY OR REMOVE\n')
+        f.write(fullline)
+    
+    if not(silent):
+        click.secho('Assembling source code.', fg="blue")
+    
+    # Attempt to change directory to the source file directory
+    
+    try:
+        os.chdir(srcDir)
+    except FileNotFoundError:
+        error_message = "Directory: {0} does not exist".format(srcDir)
+        click.secho(error_message, fg="red")
+        exit()
+    except NotADirectoryError:
+        error_message = "{0} is not a directory".format(srcDir)
+        click.secho(error_message, fg="red")
+        exit()        
+    except PermissionError:
+        error_message = "You do not have permissions to change to {0}".format(srcDir)
+        click.secho(error_message, fg="red")
+        exit()
+
+    command = assemblerDir + assembler + ' ' + sourceFile
+    
+    # Open a subprocess to run the command
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True);
+
+    # Establish a connection to the process
+    (output, err) = p.communicate()
+    if not(silent):
+        if output:
+            click.secho(output.decode('ascii'), fg="blue")
+    if err:
+        click.secho(err.decode('ascii'), fg="red")
+
+    # Wait until the process has completed
+    _ = p.wait();
+
+    # Create the flags from the config file
+    fl = ""
+    for flag in flags:
+        fl = " --" + flag + fl
+    
+    vcass_cmd = ""
+    if vcass != "":
+        vcass_cmd = " --vcass " + vcass
+
+    js_cmd = ""
+    if js != '':
+        js_cmd = " --js " + js
+
+    cassette_cmd = ""
+    if cassette != '':
+        cassette_cmd = " --cassette " + cassette
+                
+           
+    command = convertEXEDir + 'convertEXE --input ' + assembledFile +  ' --prefix ' + prefix + ' --base ' + base + ' --title ' + title + js_cmd + cassette_cmd + vcass_cmd + ' --out ' + outputDir + ' --in ' + srcDir + ' ' + fl
+    if not(silent):
+        click.secho('Converting to other formats.\n', fg="blue")
+
+    # Open a subprocess to run the command
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True);
+
+    # Establish a connection to the process
+    (output, err) = p.communicate()
+
+    # Wait until the process has completed
+    _ = p.wait();
+            
+    # If there is a successful return code, continue to clean up.
+    if (p.returncode == 0):
+        if output:
+            if not(silent):
+                click.secho(output.decode('ascii'), fg="blue")
+        if err:
+            if not(silent):
+                click.secho(err.decode('ascii'), fg="red")
+                exit()
+        # Remove the build.asm file here
+        if not(silent):
+            click.secho('Cleaning up after building.\n', fg="blue")
+        try:
+            os.remove(buildASM)
+        except OSError as e:
+            # If it fails, inform the user.
+            error_message = "Could not delete {0}; file does not exist".format(buildASM)
+            click.secho(error_message, fg="red")
+            exit()
+            
+# Build entry point
+
+if __name__ == '__main__':
+    cli()
