@@ -42,10 +42,7 @@
 ;       It must contain a centered "VERSION: " literal, followed by the build or version number.
 
 SPLASH  JSR     STR            ; Store A/B/X
-        JSR     CLS            ; Clear the screen and output two lines of banner
-        LDAA    ENTER
-        JSR     PUTCHR
-        JSR     PUTCHR         ; Produce 2 blank lines
+        JSR     CLS            
         LDX     #SPLSH1        ; Output the Title of the program
         JSR     PUTMSG
         LDX     #BUILD         ; Show the build/version number
@@ -78,7 +75,7 @@ SPLASH  JSR     STR            ; Store A/B/X
         BRA     .LOOP
 .S1     JSR     .SEL2          
 
-        
+
 .LOOP   JSR     HOME           ; Place the cursor top left (and the corresponding CSRPTR value in X)
         LDAA    39,X           ; Get the first character and stash it
         STAA    XYCHA
@@ -104,7 +101,15 @@ SPLASH  JSR     STR            ; Store A/B/X
         BNE     .OUT
         BRA     .LOOP          ; Loop around.......
 
-.OUT    JSR     RSTR           ; Restore the A/B/X values
+.OUT    JSR     HOME
+        LDAA    #65
+        STAA    XYCHA
+        CLRA
+        CLRB
+        JSR     PRTXY
+
+
+        JSR     RSTR           ; Restore the A/B/X values
         LDAA    KBDPIA         ; Load the keypress value
         CMPA    RESET          ; Did they press "R" ?
         BEQ     .RESET         ; If so, reset the names and scores
