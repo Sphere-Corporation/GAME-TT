@@ -26,7 +26,7 @@
 
 
 ## Status
-This game is a 1.1.1 release. 
+This game is a 1.1.2 release. 
 
 There is a roadmap to other features for future releases [here](https://github.com/Sphere-Corporation/GAME-TT/milestones).
 
