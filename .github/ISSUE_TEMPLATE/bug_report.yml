@@ -33,6 +33,8 @@ body:
       label: Version
       description: What version of the software are you running?
       options:
+        - 1.1.2
+        - 1.1.1
         - 1.1.0
         - 1.0.0
         - 1.0.0-beta
