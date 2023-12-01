@@ -13,3 +13,6 @@ SYMBOLS.SYM
 
 # Ignore local build settings
 src/*.toml
+
+# Ignore local build script
+created
