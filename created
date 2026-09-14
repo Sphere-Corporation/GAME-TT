@@ -3,6 +3,8 @@
 #echo "DO NOT USE UNLESS YOU ARE ACTIVELY DEVELOPING THIS SOFTWARE"
 #echo "COMMENT OUT THE BELOW LINE IF YOU ARE"
 #exit
-./build --config src/config.toml --build 2.0.0-dev
+./build --config src/config.toml --build 2.0.0a
 cp ../../MISC/site/emulatorsite/devsite/cassette_temp.js ../../MISC/site/emulatorsite/devsite/cassette.js
-cat /Users/andrew/MyProjects/Sphere/GAMES/GAME-TT/ASSETS/ttt.js >> ../../MISC/site/emulatorsite/devsite/cassette.js
+cat /Users/andrew/MyProjects/Sphere/GAMES/GAME-TT/ASSETS/o2.js >> ../../MISC/site/emulatorsite/devsite/cassette.js
+cp /Users/andrew/MyProjects/Sphere/GAMES/GAME-TT/ASSETS/o2.vcass  ../../MISC/site/emulatorsite/devsite/cassettes/o2.vcass
+cp /Users/andrew/MyProjects/Sphere/GAMES/GAME-TT/src/O2.symbols  ../../MISC/site/emulatorsite/devsite/cassettes/o2.symbols

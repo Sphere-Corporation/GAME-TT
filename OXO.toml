@@ -10,16 +10,21 @@ title = "OXO build Configuration TOML file"
 [BuildParameters]
 sourceFile      = "ttt.asm"         # Source assembler file                             (Required)
 assembledFile   = "ttt.exe"         # Output assembled executable file                  (Required)
-prefix          = "OX"              # Prefix for the blocks                             (Required)
+prefix          = "O2"              # Prefix for the blocks                             (Required)
 base            = "0200"            # Base adress for origination/load of executable    (Required)
-title           = "OXO"             # Title of program for Virtual Sphere               (Required)
-vcass           = "ttt"             # Filename for binary Virtual Sphere cassette       
-js              = "ttt"             # Filename for Javascript Virtual Sphere cassette   
-cassette        = "ttt"             # Filename for .wav file for cassette audio         
+title           = "O2O"             # Title of program for Virtual Sphere               (Required)
+vcass           = "o2"             # Filename for binary Virtual Sphere cassette       
+vcass2          = "o2"             # Filename for binary Virtual Sphere cassette V2      
+js              = "o2"             # Filename for Javascript Virtual Sphere cassette   
+cassette        = "o2"             # Filename for .wav file for cassette audio         
+rom             = "NO"                  # YES/NO if a ROM is being built
+
+
+
 
 # (Un)comment flags as required
 flags           = [
-                    "noheader",     # Don't generate a Javascript header for the Virtual Sphere
+                    #"noheader",     # Don't generate a Javascript header for the Virtual Sphere
                     "movebin",      # Move the binary to the assets location post-build
                     # "silent"        # Don't produce any output (except errors)
 ]
