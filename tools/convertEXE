@@ -1,0 +1,450 @@
+#!/usr/bin/env python3
+# convertEXE
+#
+# Author : Andrew Shapton 
+# Copyright (C) 2023/2024
+#
+# Requires Python 3.9 or newer
+#
+# Revision History
+# ----------------
+# 1.0.0         XX-XXX-2023     ALS     Initial release
+# 1.0.2         XX-XXX-2023     ALS     Bugfixes and new functionality (see change history)
+# 1.0.3         22-JAN-2024     ALS     Introduced new functionality to generate virtual cassette in "V2 format".
+#                               ALS     Corrected some issues with inter-process communication and tidied up output
+# 1.0.3.1       22-JAN-2024     ALS     Corrected bugs: incorrectly left out a quote when writing EOT_BYTE to V2 VCassette file
+#                                                       incorrectly handled tapeid when running from different directory
+# 1.0.3.2       13-MAR-2025     ALS     Corrected bugs: correctly now finds source file in source directory
+#                                                       now moves outputs correctly to output directory      
+# Import system libraries
+import os
+import sys
+
+import subprocess
+from datetime import date
+
+# Import 3rd party library
+import click
+
+# Import program-specific library
+import encode_tape
+
+"""
+
+Takes a binary Sphere-1 program and converts it into a format that can be
+     i)   Included in the Virtual Sphere simulator
+    ii)   Used in a Virtual Sphere as a 'cassette'
+   iii)   Converted to a  Kansas City Standard WAV file.
+See http://en.wikipedia.org/wiki/Kansas_City_standard
+
+
+             Portions (c) Ben Zotto 2023
+"""
+
+# Define software characteristics
+_version = '1.0.3.2';
+_package_name = 'convertEXE';
+_message = '%(package)s (Version %(version)s): Convert MC6800 assembled code into Sphere-1 loadable package and other formats.\n(c) Andrew Shapton 2023, Portions (c) Ben Zotto 2023';
+
+# Define Tape Constants
+SYNC                =   '0x16, '   # Synchronisation Byte
+CONST_BYTE          =   '0x1B, '   # 
+EOT_BYTE            =   '0x17, '   # End of Transmission Byte
+
+# Define internal Constants
+ERROR_CONSTANT      =   "ERROR:"
+CR                  =   '\n'
+TAB                 =   '\t'
+TODAY               =   date.today().strftime("%d/%m/%Y")
+EXTRA_DATA          =   13
+CASSETTE_EXTENSION  =   '.wav'
+TMP_EXTENSION       =   '.cassette'
+VCASS2_EXTENSION    =   '.vcass'
+
+# Platform constants
+SEP = os.sep
+
+# Define defaults
+BLOCK_NAME          =   'XX'
+EXTENSION           =   ".js"
+
+def fhex(value):
+    return f'0x{value:02x}'.upper().replace('X','x')
+
+def check16(value, file):
+    if value == 16:
+            file.write(CR);
+            file.write(TAB);
+            value = 0;
+    return value
+        
+def geterror(text):
+    return text[6:]
+
+def iserror(text):
+    status = False;
+    if text[:6] == ERROR_CONSTANT:
+        status = True
+    return status
+
+def read_input_file(filename):
+    try:
+        with open(filename, 'rb') as f_obj:
+            contents = f_obj.read()
+            return contents
+    except FileNotFoundError:
+        return ERROR_CONSTANT + "FileNotFoundError"
+
+def write_binary_content(file, binary_data, prefix):
+    # Get length of the program to store in bytes minus 1
+    raw_data = len(binary_data) - 1;
+    # Write the 3 Synchronisation bytes
+    file.write(TAB + SYNC);
+    file.write(SYNC);
+    file.write(SYNC);
+
+    # Write the 1 byte constant marker
+    file.write(CONST_BYTE);
+
+    # Write the count of bytes in the block (high byte first)
+    b = raw_data.to_bytes(2, 'big')
+    file.write(fhex(b[0]) + ", ");
+    file.write(fhex(b[1]) + ", ");
+
+    # Write the 2 character block name    
+    block_ascii = list(prefix.encode('ascii'))
+    file.write(fhex(block_ascii[0]) + ", ");
+    file.write(fhex(block_ascii[1]) + ", ");
+
+    c = 8
+    # Initialise checksum
+    checksum = 0;
+
+    # Write raw data to the file
+    for x in binary_data:
+        value = fhex(x);
+        file.write((value) + ", ");
+        c += 1
+        c = check16(c, file);
+        checksum = checksum + x;
+
+    # Write the end of transmission byte
+    file.write(EOT_BYTE);
+    c += 1
+    c = check16(c, file);
+
+    # Checksum is the summation of the bytes in the program MOD 256
+    checksum = fhex(checksum % 256);
+
+    # Write the checksum byte (and the 3 final trailer bytes (actually the checksum written 3 times)
+    for _ in range(3):
+        file.write(checksum + ", ");
+        c += 1
+        c = check16(c, file);
+    
+    file.write(checksum);    
+
+def write_binary_contentV2(file, binary_data, prefix):
+    
+    QUOTE = '"'
+
+    # Get length of the program to store in bytes minus 1
+    raw_data = len(binary_data) - 1;
+
+    # Write the 3 Synchronisation bytes
+    file.write(TAB + QUOTE + SYNC.replace(",",QUOTE + ",") );
+    file.write(QUOTE + SYNC.replace(",",QUOTE + ","));
+    file.write(QUOTE + SYNC.replace(",",QUOTE + ","));
+
+    # Write the 1 byte constant marker
+    file.write(QUOTE + CONST_BYTE.replace(",",QUOTE + ","));
+
+    # Write the count of bytes in the block (high byte first)
+    b = raw_data.to_bytes(2, 'big')
+    file.write(QUOTE + fhex(b[0]) + QUOTE + ", ");
+    file.write(QUOTE + fhex(b[1]) + QUOTE + ", ");
+
+    # Write the 2 character block name    
+    block_ascii = list(prefix.encode('ascii'))
+    file.write(QUOTE + fhex(block_ascii[0]) + QUOTE + ", ");
+    file.write(QUOTE + fhex(block_ascii[1]) + QUOTE + ", ");
+
+    c = 8
+    # Initialise checksum
+    checksum = 0;
+    # Write raw data to the file
+    for x in binary_data:
+        value = fhex(x);
+        file.write(QUOTE + (value) + QUOTE + ", ");
+        c += 1
+        c = check16(c, file);
+        checksum = checksum + x;
+
+    # Write the end of transmission byte
+    file.write(QUOTE + EOT_BYTE.replace(',','",'));
+    c += 1
+    c = check16(c, file);
+
+    # Checksum is the summation of the bytes in the program MOD 256
+    checksum = fhex(checksum % 256);
+
+    # Write the checksum byte (and the 3 final trailer bytes (actually the checksum written 3 times)
+    for _ in range(3):
+        file.write(QUOTE + checksum + QUOTE + ", ");
+        c += 1
+        c = check16(c, file);
+    
+    file.write(QUOTE + checksum + QUOTE );    
+    
+def write_preamble(filehandle, filename, prefix, title, base, noheader):
+    if not(noheader):
+        filehandle.write('/// Executable image for : ' + filename + CR)
+        filehandle.write("/// Date                 : " + TODAY + CR)
+        filehandle.write("///" + CR)
+        filehandle.write("/// Created by " + _package_name + " " + _version + CR)
+        filehandle.write("///" + CR)
+        
+    filehandle.write("const cassette_" + prefix.lower() + " =  { title: \"" + title + \
+        "\", label: \"" + prefix + "/" + base + "\", data:" + CR)
+    filehandle.write("[" + CR)
+    
+def write_postamble(filehandle):
+    filehandle.write(CR + "]};" + CR)
+
+def write_postambleV2(filehandle):
+    filehandle.write(CR + "]" + CR + "}" + CR)
+    
+def write_preambleV2(filehandle, prefix, title, base, fn):
+    f = fn.split(".")
+    filehandle.write('{' + CR + 
+                     '    "title":"' + title + '",' + CR + \
+                     '    "tapeid":"' + f[0] + '",' + CR  +                      
+                     '    "label":"' + prefix + "/" + base + '",' + CR + \
+                     '    "data" : [' + CR);
+    
+def convert_to_interim_format(block_name, input_file, output_file):
+    # Run Ben Zotto's process to convert to cassette format ready for converting to a WAV file.
+    # 
+    current_directory = os.path.abspath(os.path.dirname(sys.argv[0]));
+    command = current_directory + '/bin2sphere ' + block_name + ' ' + ' ' + input_file + ' ' + output_file
+    
+    # Open a subprocess to run the command
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True);
+
+    # Establish a connection to the process
+    (output, err) = p.communicate()  ;
+
+    # Wait until the process has completed
+    _ = p.wait();
+
+
+def get_basename(filename):
+    return os.path.basename(filename)
+    
+def output_hex(output, prefix, title, base, noheader,binary_data, silent, out):
+    # The business end.....
+    with open(output,'w') as file:
+        
+        # Output the first stage of information to allow the file to be appended to the Virtual Sphere codebase
+        write_preamble(file, output, prefix, title, base, noheader)
+
+        # Output the binary content of the executable in the correct format
+        write_binary_content(file, binary_data, prefix)
+
+        if not(silent):
+            click.secho(' VCassette V1', fg="green")
+            click.secho('         Destination     : ' + out, fg="green")
+            click.secho('         Cassette size   : ' + str(len(binary_data) + EXTRA_DATA)+ ' bytes', fg="green")
+
+        # Output the final stage of information to the data block and close the braces etc
+        write_postamble(file)
+        if not(silent):
+            click.secho('         Output JS       : ' + get_basename(output), fg="green")
+
+def output_hexV2(output, prefix, title, base, binary_data, noheader, silent, out, fn):
+    # The business end.....
+    with open(output,'w') as file:
+        
+        # Output the first stage of information to allow the file to be acceptable to the load process within the VSphere V2 format
+        write_preambleV2(file, prefix, title, base, fn)
+
+        # Output the binary content of the executable in the correct format
+        write_binary_contentV2(file, binary_data, prefix)
+        if not(silent):
+            click.secho(' VCassette V2', fg="green")
+            click.secho('         Destination     : ' + out, fg="green")
+            click.secho('         Cassette size   : ' + str(len(binary_data) + EXTRA_DATA)+ ' bytes', fg="green")
+        
+        # Output the final stage of information to the data block and close the braces etc
+        write_postambleV2(file)
+        if not(silent):
+            click.secho('         V2 file         : ' + prefix + VCASS2_EXTENSION, fg="green")
+
+def validate_options(_i, _o, _input, prefix, vcass, js):
+    # Check that the mandatory input and output folders exist
+    if _i == 'NONE':
+        click.secho('An input location is required', fg="red", err=True)
+        exit(1)
+    if _o == 'NONE':
+        click.secho('An output location is required', fg="red", err=True)
+        exit(1)
+        
+    if not(os.path.isdir(_i)):
+        click.secho('Input location does not exist', fg="red", err=True)
+        exit(1)
+    if not(os.path.isdir(_o)):
+        click.secho('Output location does not exist', fg="red", err=True)
+        exit(1)
+    
+
+    binary_data = read_input_file(_i + SEP + _input);
+    if iserror(binary_data):
+        if (geterror(binary_data)=='FileNotFoundError'):
+            click.secho('Input file not found: ' + _input, fg="red", err=True)
+            exit(1)
+    
+    # Check prefix parameter
+    if len(prefix) != 2:
+        click.secho('Prefix should either be empty or 2 characters : ' + prefix, fg="red", err=True)
+        exit(1)
+        
+        
+def announcement(TODAY, noheader, cassette, vcass, vcass2, silent):
+    if not(silent):
+            click.secho(_package_name + ' ' + _version + ' on ' + TODAY + CR, fg="green", bold=True)
+            click.secho('Options', fg="green")
+            click.secho('         ' + ('No JS header' if noheader else 'With JS header'), fg="green")
+            click.secho('         ' + ('With cassette output' if cassette else 'No cassette output'), fg="green")
+            click.secho('         ' + ('With Virtual Sphere V1 cassette output' if vcass != "NONE" else 'No Virtual Sphere V1 cassette output'), fg="green")
+            click.secho('         ' + ('With Virtual Sphere V2 cassette output' if vcass2 != "NONE" else 'No Virtual Sphere V2 cassette output') + CR, fg="green")
+
+def show_license(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    click.secho('\nMIT LICENSE\n\n' + 
+        'Copyright (c) 2023-2025 Andrew Shapton<alshapton@gmail.com>                   \n' + 
+        '                                                                              \n' + 
+        'Permission is hereby  granted, free of charge, to any  person obtaining a copy\n' + 
+        'of this software and  associated documentation files (the "Software"), to deal\n' + 
+        'in the  Software  without restriction, including without limitation the rights\n' + 
+        'to use,  copy,  modify,  merge,  publish,  distribute, sublicense, and/or sell\n' + 
+        'copies  of  the  Software, and  to permit  persons to  whom  the  Software is \n' + 
+        'furnished to do so, subject to the following conditions:                      \n' + 
+        '                                                                              \n' + 
+        'The above copyright notice and this permission notice shall be included in all\n' + 
+        'copies or substantial portions of the Software.                               \n' + 
+        '                                                                              \n' + 
+        'THE  SOFTWARE IS  PROVIDED "AS IS",  WITHOUT WARRANTY OF  ANY KIND, EXPRESS OR\n' + 
+        'IMPLIED,  INCLUDING BUT  NOT LIMITED  TO  THE  WARRANTIES  OF MERCHANTABILITY,\n' + 
+        'FITNESS FOR A PARTICULAR  PURPOSE AND NONINFRINGEMENT.  IN NO  EVENT SHALL THE\n' + 
+        'AUTHORS  OR  COPYRIGHT  HOLDERS  BE  LIABLE FOR  ANY CLAIM,  DAMAGES  OR OTHER\n' + 
+        'LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR  OTHERWISE, ARISING FROM,\n' + 
+        'OUT OF OR IN CONNECTION  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n' + 
+        'SOFTWARE.\n\n', fg="green")
+    ctx.exit()
+
+@click.command(epilog='Check out the Github page for more documentation at https://github.com/Sphere-Corporation/CONVERT')
+@click.option("--base","-b", help="Base address.",required=True)
+@click.option("--cassette","-c", help="Cassette output file.",required=False,default="NONE")
+@click.option("--in","-I", "_i", help="Specify an input folder.", required=True,default='NONE')
+@click.option("--input","-i", "_input", help="Input MC6800 executable file.",required=True)
+@click.option("--js","-j", help="Virtual Cassette Javascript (will have a '.js' extension).",required=False, default="")
+@click.option("--license","-l", help="Show the license (MIT).", callback=show_license, expose_value=False,is_flag=True, is_eager=True)
+@click.option("--movebin","-m", help="Move original binary to output location",required=False,default=False,is_flag=True)
+@click.option("--noheader","-n", help="Don't produce headers for JS file.",required=False,default=False,is_flag=True)
+@click.option("--out", "-O", "_o", help="Specify an output folder.", required=True,default='NONE')
+@click.option("--prefix","-p", help="Cassette prefix.",required=False, default=BLOCK_NAME)
+@click.option("--silent","-s", help="Silent (no output).",required=False,default=False,is_flag=True)
+@click.option("--title","-t", help="Cassette title (for Virtual Sphere).",required=False, default="NONE")
+@click.option("--vcass","-v", help="Produce a virtual cassette in V1 format.",required=False,default="NONE")
+@click.option("--vcass2", "-v2", help="Produce a virtual cassette in V2 format.",required=False, default="NONE")
+
+@click.version_option(version=_version, package_name=_package_name, message=_message)
+def cli(base, _i, _input, js, movebin, prefix, title, _o, cassette, noheader, silent, vcass, vcass2):
+    
+    #
+    # Announcement
+    #
+    
+    announcement(TODAY, noheader, cassette, vcass, vcass2, silent)
+          
+    #
+    # Validate options supplied
+    #
+
+    validate_options(_i, _o, _input, prefix, vcass, js)
+
+    # Formulate complete path for input file
+
+    _input = _i + SEP + _input
+    # Open the binary file for reading
+    binary_data = read_input_file(_input);
+    if not(silent):
+        click.secho('Input Information', fg="green")
+        click.secho('         ' + 'Source          : ' + _i, fg="green");
+        click.secho('         ' + 'Input file      : ' + get_basename(_input), fg="green")
+        click.secho('         ' + 'Bytes read      : ' + str(len(binary_data)) + ' bytes' + CR, fg="green")
+        click.secho('Program Information',  fg="green")
+        click.secho('                Title    : ' + title, fg="green")
+        click.secho('                Prefix   : ' + prefix, fg="green")
+        click.secho('                Address  : ' + base + CR, fg="green")
+    # 
+    # Modify parameters if required
+    #
+    # Check for lowercase/uppercase prefix
+    ucase_prefix = prefix.upper()
+    if ucase_prefix != prefix:
+        prefix = ucase_prefix
+        click.secho('Info:    Prefix changed to upper case'  + CR, fg="blue")
+  
+    # Construct output filename if none is supplied
+    if js == "":
+        js = _o + SEP + get_basename(_input) + EXTENSION;
+    else:
+        js = _o + SEP + get_basename(js) + EXTENSION;
+
+    click.secho('Output Information', fg="green")
+    # Output the hex array
+    output_hex(js, prefix, title, base, noheader, binary_data, silent, _o)
+    # Do we need to produce a Virtual Sphere cassette in V1 format?    
+    if vcass  != "NONE":
+        vcass_file = _o + SEP + cassette + TMP_EXTENSION
+        convert_to_interim_format(prefix, _input, vcass_file)
+        if not(silent):
+            click.secho('         Binary Cassette : ' + get_basename(vcass_file) , fg="green")
+
+    # Do we need to produce a Virtual Sphere cassette in V2 format?    
+    if vcass2  != "NONE":
+        vcass2_file = _o + SEP + cassette + VCASS2_EXTENSION
+        output_hexV2(vcass2_file, prefix, title, base, binary_data, noheader, silent, _o, get_basename(vcass_file))
+                    
+    # Do we need to produce a WAV file for cassette?
+
+    click.secho(' Other',  fg="green")
+    if cassette != "NONE":
+        
+        vcass_file = _o + SEP + cassette + TMP_EXTENSION
+        convert_to_interim_format(prefix, _input, vcass_file)
+        
+        cassette_file = _o + SEP + cassette + CASSETTE_EXTENSION
+        tmp_file = cassette + TMP_EXTENSION
+        
+        convert_to_interim_format(prefix, vcass_file, tmp_file)
+        encode_tape.write_wav(tmp_file,cassette_file);
+        
+        # Try to remove the temporary file.
+        # Ignore the error if it can't be deleted.
+        try: 
+            os.remove(tmp_file);
+        except FileNotFoundError:
+            pass;
+        if not(silent):
+            click.secho('         Audio Cassette  : ' + get_basename(cassette_file), fg="green")
+
+    # Do we need to move the original binary to the output folder?
+        if movebin:
+            os.rename(_input, _o + SEP + os.path.basename(_input))
+        
+
+if __name__ == '__main__':
+    cli()

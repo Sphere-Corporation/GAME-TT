@@ -10,4 +10,6 @@ title = "Assembler Configuration TOML file"
 
 [AssemblerConfig]
 assembler       = "sbasm"                                                           # Name of assembler executable
-assemblerDir    = "PATH/TO/ASSEMBLER/WITH/TRAILING/SLASH/"                          # Location of assembler
+assemblerDir    = "/Users/andrew/MyProjects/Sphere/SOFTWARE/asm/sbasm3-2/"                          # Location of assembler
+assembleCommand = "%ASSEMBLERDIR%sbasm %SRCFILE%"      # Command to run assembler on the source file
+postassemble    = "None"
