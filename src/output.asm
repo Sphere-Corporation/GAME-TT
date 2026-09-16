@@ -15,7 +15,7 @@
 ; External definitions:
 ;
 ;       BUILD           Label for the build information
-;       MSGAGN          Label for the "Press a key" lines
+;       MSGAG1          Label for the "Press a key" lines
 ;       SPLSH1          Label for the title of the program
 ;       PLAY1N          Player 1 name
 ;       PLAY1S          Player 1 score
@@ -47,7 +47,9 @@ SPLASH  JSR     STR            ; Store A/B/X
         JSR     PUTMSG
         LDX     #BUILD         ; Show the build/version number
         JSR     PUTMSG
-        LDX     #MSGAGN        
+        LDX     #MSGAG1        
+        JSR     PUTMSG         
+        LDX     #MSGAG2        
         JSR     PUTMSG         ; ... and wait for a keypress
 
         JSR     STR

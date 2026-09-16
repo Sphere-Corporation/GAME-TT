@@ -25,3 +25,7 @@ PLAY1S  .DA     #0             ; Player 1 score
 PLAY2S  .DA     #0             ; Player 2 score
 PLAYER  .DA     #0             ; 0 = Player 1 is selected
                                ; 1 = Player 2 is selected
+
+; Game Mode Information
+MODE    .AZ     /F/            ; Default Game Mode is Friend i.e. 2 player
+                               ; Possible values are "C" or "F"

@@ -17,7 +17,8 @@
         LDAA    #2             ; Initial (not to be reset) default is player 1
         STAA    PLAYER         ; (NEEDS TO BE SET TO 2 since there is a SWPPLR call prior to display)
 
-START   JSR     SPLASH         ; Splash Screen
+START   JSR     MSPLSH         ; Display main splash screen
+        ;JSR     SPLASH         ; Splash Screen
         JSR     BOARD          ; Display Board
         JSR     INIT           ; Initialise the game
         JSR     GLOOP          ; Main Loop
@@ -27,6 +28,7 @@ START   JSR     SPLASH         ; Splash Screen
         .IN gameloop           ; Main Game Loop
 
 ; Subroutines
+        .IN display            ; Include main display subroutines
         .IN output             ; Include output-related Subroutines
         .IN utils              ; Include utilities
         .IN library            ; Include library routines
