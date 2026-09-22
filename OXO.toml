@@ -31,7 +31,7 @@ flags           = [
 [Locations]
 convertEXEDir   = "/Users/andrew/MyProjects/Sphere/Tools/TOOLCHAIN/resources/"    # Location of convertEXE file
 srcDir          = "/Users/andrew/MyProjects/Sphere/GAMES/GAME-TT/src"             # Location of assembler source code
-outputDir       = "/Users/andrew/MyProjects/Sphere/GAMES/GAME-TT/ASSETS/"         # Location of target assets
+outputDir       = "/Users/andrew/MyProjects/Sphere/GAMES/GAME-TT/ASSETS"         # Location of target assets
 toolsDir        = "/Users/andrew/MyProjects/Sphere/GAMES/GAME-TT/tools"           # Location of supporting tools
 
 [Miscellaneous]

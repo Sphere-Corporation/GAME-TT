@@ -1,6 +1,6 @@
 GLOOP                          ; Main Game Loop
 
-ROUND   JSR     STR
+.ROUND  JSR     STR
         JSR     CHKWD          ; Check for win/draw
         LDAB    #$FF           ; Look at the status coming back - $FF is a draw
         CMPB    WDSTAT
@@ -42,7 +42,7 @@ ROUND   JSR     STR
         CMPA    #$53
         BEQ     .ARRD          ; WASD-W Down
 
-        BRA     ROUND
+        BRA     .ROUND
 ; End of main game loop - subroutines in game loop appear below.
 
 .INST   JSR     INSTR
@@ -110,7 +110,7 @@ ROUND   JSR     STR
         JSR     PRTXY          ; Cursor's moved to the correct location
         JSR     CVT            ; Get position on the board
 
-.AGAIN  JMP     ROUND
+.AGAIN  JMP     .ROUND
 
 
 

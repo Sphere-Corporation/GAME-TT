@@ -18,17 +18,21 @@
         STAA    PLAYER         ; (NEEDS TO BE SET TO 2 since there is a SWPPLR call prior to display)
 
 START   JSR     MSPLSH         ; Display main splash screen
-        ;JSR     SPLASH         ; Splash Screen
         JSR     BOARD          ; Display Board
         JSR     INIT           ; Initialise the game
-        JSR     GLOOP          ; Main Loop
+        LDAA    MODE           ; Find out what game mode we are playing
+        CMPA    #$46           ; If we are playing 2-players i.e. MODE='F'
+        BEQ     .PL2           ; 
+        JSR     GLOOPC         ; Play against the Computer
+        BRA     START     
+.PL2    JSR     GLOOP          ; Main Loop for 2 players
         BRA     START          ; Go again
 
 ; Main game loop
-        .IN gameloop           ; Main Game Loop
-
+        .IN gameloop           ; Main Game Loop for 2 Player game
+        .IN computer           ; Main Game Loop for Player vs Computer
 ; Subroutines
-        .IN display            ; Include main display subroutines
+        .IN splash             ; Include main splash screens
         .IN output             ; Include output-related Subroutines
         .IN utils              ; Include utilities
         .IN library            ; Include library routines
