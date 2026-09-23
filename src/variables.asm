@@ -21,7 +21,16 @@ SPCOCC  .DA     #0             ; Space Occupied ? 0 = No, 1 = Yes
 ; Player information
 PLAY1N  .AZ     /PLAYER1/      ; Name of player 1
 PLAY2N  .AZ     /PLAYER2/      ; Name of player 2
+PLAYCN  .AZ     /SPHERE1/      ; Name of Computer
 PLAY1S  .DA     #0             ; Player 1 score
 PLAY2S  .DA     #0             ; Player 2 score
+PLAYCS  .DA     #0             ; Computer Player Score
 PLAYER  .DA     #0             ; 0 = Player 1 is selected
                                ; 1 = Player 2 is selected
+
+; Game Mode Information
+MODE    .AZ     /F/            ; Default Game Mode is Friend i.e. 2 player
+                               ; Possible values are "C" or "F"
+
+; Computer Player Data
+COUNTER .DA     #0             ; Counter which is incremented to achieve a pseudo-random see for start of play

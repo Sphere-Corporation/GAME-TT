@@ -3,15 +3,48 @@
 # build
 #
 # Build toolchain for Sphere-1 Executables
-# Author : Andrew Shapton - Portions (c) Ben Zotto 2023
-# Copyright (C) 2023
+# Author : Andrew Shapton 
+#        : Portions (c) Ben Zotto 2023               
+#        :          (c) William Bahn 2010
+# Copyright (C) 2023-2025
 #
 # Requires Python 3.9 or newer
+
+# Note that column 4 here shows the development(s) that gave rise to the release of the build framework
 #
+# 0.0.1     28-NOV-2023     ALS     GAME-TT     Initial release
+# 0.0.2     06-JAN-2024     ALS     LANG-BF     Improved assembly error processing          
+#                                               Added versionJustify and NLAfterBuildVersion settings
+#                                               Consolidated literals and abstracted code from main cli() function
+#                                               Fixed bug whereby supplying a build number caused the process to crash
+#                                               Eliminated all linting errors (including reducing complexity)
+# 0.0.3     22-JAN-2024     ALS     LANG-BF     Added support for VCassette V2 format
+#                                               Corrected some issues with inter-process communication and tidied up output
+# 0.0.4     01-MAY-2024     ALS     LANG-BF     Improved error handling with assembly errors
+# 
+# 0.0.5     29-MAY-2024     ALS     LANG-BF     Added symbol table processing
+#
+# 0.0.6     28-SEP-2024     ALS     UTIL-MM     Corrected bug which resulted in the first and last 
+#                                                 symbol of a single symbol file not being 
+#                                                 able to be loaded as a debug-ready symbol
+#
+# 0.0.7     03-JAN-2025     ALS     Standalone  Added functionality to enable a customised set of 
+#                                                 toolchain to be configured from prompts
+#                                               Added --overwrite flag to not check for existing directories with --init  
+#                                         
+#
+# Requires convertEXE 1.0.3.2 or above
+#          convertROM 1.3 or above
+#          srec2bin   1.1.2 or above (included but needs to be compiled)
+#          bin2sphere 1.1 or above (included but needs to be compiled)
+#          encode_tape.py 
+#          
+#          Python 3.9 or newer
 
 # Import system libraries
 import os
-
+import shutil
+        
 from datetime import datetime   
 import subprocess
 import toml 
@@ -19,213 +52,507 @@ import toml
 # Import 3rd party library
 import click
 
+
+# Platform constants
+SEP = os.sep
+
+# File extensions
+EXT_TOML = ".toml"
+ASM_FILE = ".asm"
+EXE_FILE = ".exe"
+EXT_TPLT = ".template"
+
+# File constants
+DEFAULT_RESOURCES_LOCATION = "resources"
+DEFAULT_SYMBOL_CONFIG_ROOT = "symbols"
+
+DEFAULT_SYMBOL_CONFIG_FILE = DEFAULT_SYMBOL_CONFIG_ROOT + EXT_TOML
+DEFAULT_SYMBOL_TEMPLATE_FILE = DEFAULT_SYMBOL_CONFIG_ROOT + EXT_TPLT
+
+# Program constants
+CR = '\n'
+ERRORCOLOR = "red"
+INFOCOLOR = "blue"
+CHANGECOLOR = "yellow"
+SUCCESSCOLOR = "green"
+
 # Define software characteristics
-_version = '0.0.1';
+_version = '0.0.7';
 _package_name = 'build';
-_message = '%(package)s (Version %(version)s): Sphere-1 Builder';
+_copyright = '(c) 2023-2025 Andrew Shapton, Portions (c) 2010 William Bahn, 2010 David Beazley, 2023 Ben Zotto'
+_message = '%(package)s (Version %(version)s): Sphere-1 Builder' + CR + _copyright;
+_generator = '{0} (Version {1}): Sphere-1 Builder'.format(_package_name,_version) + CR + '# ' + _copyright;
 
 # Define messages
-CONFIG_FILE_DOES_NOT_EXIST  = "Configuration file {0} does not exist"
-KEY_DOES_NOT_EXIST          = "Configuration Key: {0} does not exist."
-SECTION_DOES_NOT_EXIST      = "Configuration Section: {0} does not exist within {1}."
+GENERIC_DOES_NOT_EXIST      = "{0} does not exist"
+CONFIG_FILE_DOES_NOT_EXIST  = "Configuration file "  + GENERIC_DOES_NOT_EXIST
+KEY_DOES_NOT_EXIST          = "Configuration Key: " + GENERIC_DOES_NOT_EXIST
+SECTION_DOES_NOT_EXIST      = "Configuration Section: " + GENERIC_DOES_NOT_EXIST + " within {1}."
+COULDNT_DELETE              = "Could not delete "  + GENERIC_DOES_NOT_EXIST
+SYMBOL_FILE_DOES_NOT_EXIST  = "Symbol file " + GENERIC_DOES_NOT_EXIST
+SYMBOL_BASE_FILE_DOES_NOT_EXIST = "Base symbol configuration file " + GENERIC_DOES_NOT_EXIST
 
+def open_configuration_file(CFILE, NOT_EXIST, silent, literal):
+    ''' Check supply of a configuration file '''
+    try:
+        with open(CFILE, 'r') as f:
+            config = toml.load(f)
+    except FileNotFoundError:            
+        error_message = NOT_EXIST.format(CFILE)
+        click.secho(error_message, fg=ERRORCOLOR)
+        exit()
+    ''' Display message stating that the file is being read'''
+    if not(silent):
+        click.secho(CR + 'Acquiring ' + literal + ' from ',nl=False, fg=INFOCOLOR)
+        click.secho(CFILE,nl=False, fg=CHANGECOLOR)
+        click.secho('.' + CR + CR + 'Validating ' + literal + ':', nl=False , fg=INFOCOLOR)
+        
+    return config
 
+def replace_file_content(dict_replace, template_file, target_file):
+    """Based on dict, replaces key with the value on the target."""
+    from re import sub
+    template = open(template_file, 'r')
+    template_content = template.read()
+    template.close()
+    for check, replacer in list(dict_replace.items()):
+        target = sub(check, replacer, template_content)
+        template_content = target.replace(check, replacer)
+    
+    target_file_open = open(target_file, 'w')
+    target_file_open.write(target)
+    target_file_open.close()
+    return target
+
+def replace_symbols(dict_replace, content):
+    from re import sub
+    for check, replacer in list(dict_replace.items()):
+        content = sub(check, replacer, content)
+        content = content.replace(check, replacer)
+    return content
+
+def does_folder_exist(folder_name):
+    ''' Check to see if a folder exists '''
+    return os.path.isdir(folder_name)
+
+def does_file_exist(filename):
+    ''' Check to see if a fully qualified file exists '''
+    try:
+        with open(filename, 'r') as f:
+            return True
+    except FileNotFoundError:            
+        return False
+    
+def make_directory(directory):
+    ''' Make a directory '''
+    try:  
+        os.mkdir(directory)  
+    except OSError:  
+        return False
+    return True
+
+def CamelCase(s):
+    ''' Convert a string to camel case '''
+    newString = ''
+    newString += s[0].upper()
+
+    for k in range(1, len(s)): 
+        if s[k] == ' ':
+            newString += s[k + 1].upper()
+            k += 1
+        elif s[k - 1] != ' ':
+            newString += s[k]
+    return newString
 
 def date_2_julian_string (date):
+    ''' Return a date in a Julian-date format '''
     return str(date.strftime('%Y')) + date.strftime('%j')
 
-
+def determine_build_number(build):    
+    ''' Determine the build number of this build '''
+    if build == "NONE":
+        return date_2_julian_string(datetime.now()) + "-" + datetime.now().strftime('%H:%M')
+    else:
+        return build;
+    
 def get_key(config_info, key, default):
+    ''' Get the value of a key from a config file, else return a default'''
     if key in config_info:
         _key   = config_info[key]
     else:
         _key   = default
     return _key
 
-
 def default_key(config_info, key, default, required, section, filename):
     ''' Check to see if a key exists, and return an error if the key doesn't exist or has a null value, but only if the key is optional, return the value/default otherwise'''
     key_value = get_key(config_info, key, default)
     if (key_value) == default:
+        kv = key_value
         if required:            
             error_message = KEY_DOES_NOT_EXIST.format(key,section,filename)
-            click.secho(error_message, fg="red")
+            click.secho(error_message, fg=ERRORCOLOR)
             exit() 
         else:
-            return key_value
+            return kv
     return key_value
 
 
 def validate_section(config_info, section, silent, spaces, filename):
     output = ' ' * spaces + section
     if not(silent):
-        click.secho(output, fg="blue") 
+        click.secho(output, fg=INFOCOLOR) 
     if _ := config_info.get(section):
         pass
     else:
         error_message = SECTION_DOES_NOT_EXIST.format(section,filename)
-        click.secho(error_message, fg="red")
+        click.secho(error_message, fg=ERRORCOLOR)
         exit()
 
-def construct_build_line(build):
-    version_literal="VERSION:" + build
-    spc = (round((32-(len(version_literal)))/2))
-    fullline = "BUILD   .AZ  /" + ''.join([char*spc for char in ' ']) + version_literal + '/'
+def construct_build_line(build, buildJustify, NLAfterBuildVersion):
+    version_literal = "VERSION:" + build
+    build_literal = "BUILD   .AZ  /" 
+    if buildJustify == "C":
+        spc = (round((32-(len(version_literal)))/2))
+        fullline = build_literal + ''.join([char*spc for char in ' ']) + version_literal + '/'
+
+    if buildJustify == "L":
+        fullline = build_literal + version_literal + '/'
+    
+    if buildJustify == "R":
+        spc = (round(32-(len(version_literal))))
+        fullline = build_literal + ''.join([char*spc for char in ' ']) + version_literal + '/'
+        
+    if NLAfterBuildVersion == "True":
+        fullline = fullline + ",#$0D"
     return fullline
 
-@click.command()
-@click.option("--config","-c", help="Configuration file",required=False,default="config.toml")
-@click.option("--build","-b", help="Supply a build number",required=False,default="NONE")
-@click.option("--silent","-s", help="Silent (no output).",required=False,default=False,is_flag=True)
-@click.version_option(version=_version, package_name=_package_name, message=_message)
-def cli(config, build, silent):
-    
-    # Determine build number
-    if build == "NONE":
-        build = date_2_julian_string(datetime.now()) + "-" + datetime.now().strftime('%H:%M');
-    message = '\n' + _package_name + '(Version ' + _version + ') - (c) 2023 Andrew Shapton, Portions (c) 2023 Ben Zotto\n'
+def build_version_file(silent, build, buildJustify, NLAfterBuildVersion, srcDir, buildASM):
+    ''' Auto-construct the build version file '''
     if not(silent):
-        click.secho(message,fg="bright_blue")
-        
-    MAIN_CONFIG_FILE = config
-    # Check supply of main configuration file
-    try:
-        with open(MAIN_CONFIG_FILE, 'r') as f:
-            config = toml.load(f)
-    except FileNotFoundError:            
-        error_message = CONFIG_FILE_DOES_NOT_EXIST.format(MAIN_CONFIG_FILE)
-        click.secho(error_message, fg="red")
-        exit()
-    
-    # Read config file 
-    if not(silent):
-        click.secho('Acquiring main configuration from ',nl=False, fg="blue")
-        click.secho(MAIN_CONFIG_FILE,nl=False, fg='yellow')
-        click.secho('.\n\nValidating Main Configuration:', nl=False , fg="blue")
-        
-    # Validate the existence of the Config section    
-    validate_section(config,"Config", silent,1,MAIN_CONFIG_FILE)
-    
-    MASTER_CONFIG_FILE  = default_key(config["Config"], "build", "", True,'Config',MAIN_CONFIG_FILE) # Both these keys have been checked and found to exist
-    THIS_CONFIG_FILE    = default_key(config["Config"], "this", "", True,'Config',MAIN_CONFIG_FILE)  # so no defaults are required.
+        click.secho(CR + 'Building Version: ' + build + CR, fg=INFOCOLOR)
 
-    # Check supply of build setup configuration file
-    try:
-        with open(MASTER_CONFIG_FILE, 'r') as f:
-            bsconfig = toml.load(f)
-    except FileNotFoundError:            
-        error_message = CONFIG_FILE_DOES_NOT_EXIST.format(MASTER_CONFIG_FILE)
-        click.secho(error_message, fg="red")
-        exit()
-    
-    # Read build config file 
     if not(silent):
-        click.secho('\nAcquiring Build Setup configuration from ',nl=False, fg="blue")
-        click.secho(MASTER_CONFIG_FILE,nl=False, fg='yellow')
-        click.secho('.\n\nValidating Build Setup configuration:', nl=False , fg="blue")
-        
-    # Validating AssembledConfig
-    validate_section(bsconfig,"AssemblerConfig", silent, 1, MASTER_CONFIG_FILE)
-    
-    # Get configuration from config file
-    
-    assembler       = default_key(bsconfig["AssemblerConfig"], "assembler", "", True,'AssemblerConfig', MASTER_CONFIG_FILE)    # Both these keys have been checked and found to exist
-    assemblerDir    = default_key(bsconfig["AssemblerConfig"], "assemblerDir", "", True,'AssemblerConfig', MASTER_CONFIG_FILE) # so no defaults are required.
-    
-    # Check supply of the specific build configuration file
-    try:
-        with open(THIS_CONFIG_FILE, 'r') as f:
-            config = toml.load(f)
-    except FileNotFoundError:            
-        error_message = CONFIG_FILE_DOES_NOT_EXIST.format(THIS_CONFIG_FILE)
-        click.secho(error_message, fg="red")
-        exit()
+        fullline = construct_build_line(build, buildJustify, NLAfterBuildVersion)
+        buildASMFile = srcDir + SEP + buildASM
+        click.secho('Auto-generating build version file.' + CR, fg=INFOCOLOR)
 
-    # Read build config file 
-    if not(silent):
-        click.secho('\nAcquiring Build configuration from ', nl=False, fg="blue")
-        click.secho(THIS_CONFIG_FILE,nl=False, fg='yellow')
-        click.secho('.\n\nValidating Build configuration:', nl=False , fg="blue")
+    # Auto-generate build version file for inclusion in the splash screen
+    with open(buildASMFile,'w') as f:
+        f.write('; AUTO-GENERATED BY BUILD PROCESS: DO NOT MODIFY OR REMOVE' + CR)
+        f.write(fullline)
 
-    validate_section(config,"Locations", silent,1, THIS_CONFIG_FILE)
-    validate_section(config,"BuildParameters", silent,32, THIS_CONFIG_FILE)
-    validate_section(config,"Miscellaneous", silent,32, THIS_CONFIG_FILE)
+def initialise(silent, init, overwrite):
+        # Parameter gathering for initialisation of new project configuration
         
-    # Validate non-blankness of mandatory parameters
+        from rich.prompt import Prompt, Confirm
+        if not overwrite:
+            if does_folder_exist(init):
+                info_message = CR + "Directory: \'{0}\' already exists".format(init)
+                if Confirm.ask("["+INFOCOLOR+"]" + info_message + "; do you wish to continue? ") is False:
+                    exit()
+
+        tools_dir = 'resources'              
+
+        # stuff to copy the toolchain locally
+        import shutil
+
+        src_dir = tools_dir + SEP 
+        dst_dir= init + SEP + 'tools' + SEP
+        
+        tools_dst_dir =  'tools' 
+
+        # Make new directory to store toolchain files in
+        if not make_directory(dst_dir):
+            pass
+        for filename in ['convertEXE','convertROM','encode_tape.py','bin2sphere','srec2bin']:
+            src = src_dir + filename
+            dst =  dst_dir+ filename
+            
+            shutil.copy(src, dst)
+        shutil.copy('build', init)
+            
+        source_dir = Prompt.ask("["+INFOCOLOR+"]What is the path of the program source within " + init + " ? ",default='src')
+        full_source_path = source_dir
+        if not overwrite:
+
+            if does_folder_exist(full_source_path):
+                info_message = CR + "Directory: \'{0}\' already exists".format(full_source_path)
+                if Confirm.ask("["+INFOCOLOR+"]" + info_message + "; do you wish to continue? ") is False:
+                    exit()
+                else:
+                    # Make new directory to store source files in
+                    if not make_directory(full_source_path):
+                        pass
+        else:
+            # Make new directory to store source files in
+            if not make_directory(full_source_path):
+                pass
+
+        output_dir = Prompt.ask("["+INFOCOLOR+"]What is the path of the output files ? ",default='ASSETS')
+        if not overwrite:
+
+            if does_folder_exist(init + SEP + output_dir):
+                info_message = CR + "Directory: \'{0}\' already exists".format(output_dir)
+                if Confirm.ask("["+INFOCOLOR+"]" + info_message + "; do you wish to continue? ") is False:
+                    exit()
+                else:
+                    # Make new directory to store outputfiles files in
+                    if not make_directory(init + SEP + output_dir):
+                        pass
+        else:
+            # Make new directory to store outputfiles files in
+            if not make_directory(init + SEP + output_dir):
+                pass
+
+        name = Prompt.ask("["+INFOCOLOR+"]What is your name ")           
+        configfile_base = Prompt.ask("["+INFOCOLOR+"]Configuration file name (no extension) ", default="config")
+        configfile_description = Prompt.ask("["+INFOCOLOR+"]Configuration file description (optional) ")
+        configfile_title = Prompt.ask("["+INFOCOLOR+"]Configuration file title  ",default="Main configuration file for " + init)
+        
+        genericfile_base = Prompt.ask("["+INFOCOLOR+"]Settings file name (no extension) ", default="build")
+
+        while True:
+            system_prefix = Prompt.ask("["+INFOCOLOR+"]Prefix name (maximum 2 characters) ", default="XX")
+            if len(system_prefix) != 2:
+                print("System Prefix {0} is should be 2 characters".format(system_prefix))
+            else:
+                if system_prefix.upper() != system_prefix:
+                    print("System Prefix {0} should be upper case".format(system_prefix))
+                else:
+                    break
+        # Add extensions to filenames
+        configfile = configfile_base + EXT_TOML
+        genericfile = genericfile_base + EXT_TOML
+        buildsettings = system_prefix.lower() + EXT_TOML
     
-    convertEXEDir   = default_key(config["Locations"], "convertEXEDir", "N/A", True, "Locations", THIS_CONFIG_FILE)
+        full_symbolfile = 'symbolstruct = "{0}"        # Symbol Structure file'.format(DEFAULT_SYMBOL_CONFIG_FILE)
+        full_symbolfilename = DEFAULT_RESOURCES_LOCATION + SEP + DEFAULT_SYMBOL_TEMPLATE_FILE
+
+
+        add_symbol = Confirm.ask("["+INFOCOLOR+"]Do you want to add a symbol file? ",default='y')
+        symbols = []
+
+        if add_symbol:
+            # Get Symbol file information details
+            symbol_file = Prompt.ask("["+INFOCOLOR+"]Symbol info File (full path) ", default='SYMBOLS.SYM')
+            while True:
+                symbol = Prompt.ask("["+INFOCOLOR+"]Symbol to include in debug list on startup ", default='START')
+                symbols.append(symbol)
+                if Confirm.ask("["+INFOCOLOR+"]Do you want to add another symbol? ",default='y') is False:
+                    break
+        else:
+            symbol_file = ''
+
+        # Make new directory to store configuration files (and ultimately program source) in
+                        
+        if not make_directory(init):
+            pass
+        
+        dict_replace = {
+                '%NAME%': name,
+                '%FILENAME%': configfile,
+                '%SETTINGS%': genericfile,
+                '%SRC%': init,
+                '%BUILDSETTINGS%': buildsettings,
+                '%SYMBOLFILE%': full_symbolfile,
+                '%PACKAGENAME%': _generator,
+                '%DESCRIPTION%': configfile_description,
+                '%TITLE%': configfile_title,
+                '%TODAY%': str(datetime.today().strftime('%Y-%m-%d')),
+                '%YEAR%':str(datetime.today().strftime('%Y'))
+                    }
+ 
+        # Create configuration file from the template    
+        configfilecontent = replace_file_content(dict_replace,DEFAULT_RESOURCES_LOCATION + SEP + 'config.template',init + SEP + configfile)  
+        
+
+        while True:
+            assembler_name = Prompt.ask("["+INFOCOLOR+"]Assembler executable name  ", default="sbasm")
+            assembler_path = Prompt.ask("["+INFOCOLOR+"]Full path to assembler executable  ", default="")
+            if assembler_path[-1] != '/':
+                assembler_path = assembler_path + SEP
+        
+            if does_folder_exist(assembler_path):
+                pass
+            else:
+                print("Assembler path {0} does not exist".format(assembler_path))
+
+            if does_file_exist(assembler_path + assembler_name):
+                break
+            else:
+                click.secho("Assembler executable {0} does not exist in {1}".format(assembler_name,assembler_path), fg=ERRORCOLOR)
+        
+        symbol_config = open_configuration_file(full_symbolfilename, SYMBOL_BASE_FILE_DOES_NOT_EXIST, silent, 'Symbol Configuration Base File');
+        post_assemble_line   = default_key(symbol_config[assembler_name], "postassemble", "None", True, assembler_name, full_symbolfilename)
+        assemble_command   = default_key(symbol_config[assembler_name], "assembleCommand", "None", True, assembler_name, full_symbolfilename)
+
+        dict_replace = {
+                '%NAME%': name,
+                '%FILENAME%': configfile,
+                '%SETTINGS%': genericfile,
+                '%SRC%': init,
+                '%ASSEMBLER%': assembler_name,
+                '%ASSEMBLECOMMAND%': assemble_command,
+                '%SYMFILE%': symbol_file,
+                '%ASSEMBLER_PATH%': assembler_path,
+                '%BUILDSETTINGS%': buildsettings,
+                '%SYMBOLFILE%': full_symbolfile,
+                '%PACKAGENAME%': _generator,
+                '%DESCRIPTION%': configfile_description,
+                '%TITLE%': configfile_title,
+                '%TODAY%': str(datetime.today().strftime('%Y-%m-%d')),
+                '%YEAR%':str(datetime.today().strftime('%Y')),
+                '%POST_ASSEMBLE%': post_assemble_line
+                    }
+        
+        # Create build settings file from the template    
+        _buildfilecontent = replace_file_content(dict_replace,DEFAULT_RESOURCES_LOCATION + SEP + 'build.template',init + SEP + genericfile)  
+        
+        source_file = Prompt.ask("["+INFOCOLOR+"]Source File (including extension) ", default=system_prefix.lower() + ASM_FILE)
+        assembled_file = Prompt.ask("["+INFOCOLOR+"]Target File (including extension) ", default=system_prefix.lower() + EXE_FILE)
+
+        base_address = Prompt.ask("["+INFOCOLOR+"]Base Address  ", default="0200")
+        description = Prompt.ask("["+INFOCOLOR+"]Short Description  ")
+        
+        # Get Build information details
+        buildinfo_file = Prompt.ask("["+INFOCOLOR+"]Build info File ", default='build' + ASM_FILE)
+        if buildinfo_file[-4:] != ASM_FILE:
+            buildinfo_file = buildinfo_file + ASM_FILE
+
+        buildJustify = Prompt.ask("["+INFOCOLOR+"]Build Justify (L/C/R) ", default='C')
+        while buildJustify not in ['L','C','R']:
+            buildJustify = Prompt.ask("["+INFOCOLOR+"]Build Justify (L/C/R) ", default='C')
+
+        NLAfterBuildVersion = Confirm.ask("["+INFOCOLOR+"]New Line after Build Version ",default='y')
+        if NLAfterBuildVersion:
+            NLAfterBuildVersion = "true"
+        else:
+            NLAfterBuildVersion = "false"
+
+        
+        # Get flags
+        flags='["'
+        javascript_header = Confirm.ask("["+INFOCOLOR+"]Do you want a Javascript header for the Virtual Sphere ?",default='y')
+        if javascript_header!='y':
+            flags = flags + "noheader" + '","'
+
+        movebin = Confirm.ask("["+INFOCOLOR+"]Do you want to move the binary to the assets location post-build ?",default='y')
+        if movebin:
+            flags = flags + "movebin" + '","'
+        
+        silent = Confirm.ask("["+INFOCOLOR+"]Do you want to have output during the build ?",default='y')
+        if silent:
+            pass
+        else:
+            flags = flags + "silent" + '","'
+
+        rom_value = 'NO'
+        rom = Confirm.ask("["+INFOCOLOR+"]Are you building a ROM ?",default='y')
+        if rom:
+            rom_value = 'YES'
+
+        flags = flags + '"]'
+        flags = flags.replace(',""','')
+        dict_replace = {
+                '%NAME%': name,
+                '%FILENAME%': buildsettings,
+                '%PREFIX%': system_prefix.upper(),
+                '%PREFIXL%': system_prefix.lower(),
+                '%SOURCEFILE%': source_file,
+                '%ASSEMBLEDFILE%': assembled_file,
+                '%DESCRIPTION%': description,
+                '%PACKAGENAME%': _generator,
+                '%TODAY%': str(datetime.today().strftime('%Y-%m-%d')),
+                '%YEAR%':str(datetime.today().strftime('%Y')),
+                '%BASE_ADDRESS%': base_address,
+                '%FLAGS%': flags,
+                '%ROM%': rom_value,
+                '%SRCDIR%': full_source_path,
+                '%OUTDIR%': output_dir,
+                '%TOOLSDIR%': tools_dst_dir,
+                '%BUILDINFOFILE%': buildinfo_file,
+                '%BUILDJUSTIFY%': buildJustify,
+                '%NLAFTERBUILDVERSION%': NLAfterBuildVersion,
+                '%SYMBOLFILE%': symbol_file,
+                '%SYMBOLS%': str(symbols)
+                    }
+        
+        # Create this build settings file from the template    
+        _thisbuildfilecontent = replace_file_content(dict_replace,DEFAULT_RESOURCES_LOCATION + SEP + 'this.template',init + SEP + buildsettings)  
+        
+        # Create this build settings file from the template    
+        
+        # Source and destination
+        src = 'resources' + SEP + 'symbols.template'
+        dst = init + SEP + source_dir + SEP + DEFAULT_SYMBOL_CONFIG_FILE
+        
+        # Copy File
+        shutil.copy(src, dst)
+            
+            
+        
+def cleanup(silent, buildASM):
+        # Remove the build.asm file here
+        if not(silent):
+            click.secho(CR + 'Cleaning up after building.' + CR, fg=INFOCOLOR)
+        try:
+            os.remove(buildASM)
+        except OSError:
+            # If it fails, inform the user.
+            error_message = COULDNT_DELETE.format(buildASM)
+            click.secho(error_message, fg=ERRORCOLOR)
+            exit()
+            
+def build_complete(silent):
+        # Show a message to show that the build is complete
+        if not(silent):
+            click.secho('Build is complete.' + CR, fg=SUCCESSCOLOR)
+            
+def get_symbolstructure(config, THIS_CONFIG_FILE, assembler):
+    symbolName   = default_key(config[assembler], "symbolName", "N/A", True, assembler, THIS_CONFIG_FILE)
+    symbolValue   = default_key(config[assembler], "symbolValue", "N/A", True, assembler, THIS_CONFIG_FILE)
+    symbolValueFormat   = default_key(config[assembler], "symbolValueFormat", "N/A", True, assembler, THIS_CONFIG_FILE)
+    preamble   = default_key(config[assembler], "preamble", "N/A", True, assembler, THIS_CONFIG_FILE)
+    postamble   = default_key(config[assembler], "postamble", "N/A", True, assembler, THIS_CONFIG_FILE)
+    postassemble   = default_key(config[assembler], "postassemble", "N/A", True, assembler, THIS_CONFIG_FILE)
+    return symbolName, symbolValue, symbolValueFormat, preamble, postamble, postassemble
+             
+def get_parameters(config, THIS_CONFIG_FILE):
     srcDir          = default_key(config["Locations"], "srcDir", "N/A", True, "Locations", THIS_CONFIG_FILE)
     outputDir       = default_key(config["Locations"], "outputDir", "N/A", True, "Locations", THIS_CONFIG_FILE)
+    tools_Dir       = default_key(config["Locations"], "toolsDir", "N/A", True, "Locations", THIS_CONFIG_FILE)
+    
     sourceFile      = default_key(config["BuildParameters"], "sourceFile", "N/A",True,"BuildParameters", THIS_CONFIG_FILE)                
     assembledFile   = default_key(config["BuildParameters"], "assembledFile", "N/A", True,"BuildParameters", THIS_CONFIG_FILE)
     prefix          = default_key(config["BuildParameters"],"prefix", "N/A", True,"BuildParameters", THIS_CONFIG_FILE)
     base            = default_key(config["BuildParameters"],"base", "", True,"BuildParameters", THIS_CONFIG_FILE)
     title           = default_key(config["BuildParameters"],"title", "", True,"BuildParameters", THIS_CONFIG_FILE)
-    vcass           = default_key(config["BuildParameters"],"vcass", "", False,"BuildParameters", THIS_CONFIG_FILE)
+    vcass           = default_key(config["BuildParameters"],"vcass", "NONE", False,"BuildParameters", THIS_CONFIG_FILE)
+    vcass2          = default_key(config["BuildParameters"],"vcass2", "NONE", False,"BuildParameters", THIS_CONFIG_FILE)
     js              = default_key(config["BuildParameters"],"js", "", False,"BuildParameters", THIS_CONFIG_FILE)
     flags           = default_key(config["BuildParameters"],"flags", None, False,"BuildParameters", THIS_CONFIG_FILE)
     cassette        = default_key(config["BuildParameters"],"cassette", "", False,"BuildParameters", THIS_CONFIG_FILE)
     
-    buildASM        = default_key(config["Miscellaneous"],"buildASM", "", True,"Miscellaneous", THIS_CONFIG_FILE)
+    buildASM            = default_key(config["Miscellaneous"],"buildASM", "", True,"Miscellaneous", THIS_CONFIG_FILE)
+    buildJustify        = default_key(config["Miscellaneous"],"buildJustify", "", False,"Miscellaneous", THIS_CONFIG_FILE)
+    NLAfterBuildVersion = default_key(config["Miscellaneous"],"NLAfterBuildVersion", True, False,"Miscellaneous", THIS_CONFIG_FILE)
     
-    if not(silent):
-        click.secho('Building Version: ' + build + '\n', fg="blue")
+    symbolFile      = default_key(config["Symbols"], "symbolFile", "N/A", False, "Symbols", THIS_CONFIG_FILE)
+    defaultSymbols  = default_key(config["Symbols"], "defaultSymbols", "N/A", False, "Symbols", THIS_CONFIG_FILE)
 
-    if not(silent):
-        fullline = construct_build_line(build)
-        buildASMFile = srcDir + buildASM
-        click.secho('Auto-generating build version file.\n', fg="blue")
-
-    # Auto-generate build version file for inclusion in the splash screen
-    with open(buildASMFile,'w') as f:
-        f.write('; AUTO-GENERATED: DO NOT MODIFY OR REMOVE\n')
-        f.write(fullline)
+    return     srcDir, outputDir, sourceFile, assembledFile, prefix, base, title, vcass, vcass2, js, flags, cassette,\
+                buildASM, buildJustify, NLAfterBuildVersion, symbolFile, defaultSymbols, tools_Dir
     
-    if not(silent):
-        click.secho('Assembling source code.', fg="blue")
-    
-    # Attempt to change directory to the source file directory
-    
-    try:
-        os.chdir(srcDir)
-    except FileNotFoundError:
-        error_message = "Directory: {0} does not exist".format(srcDir)
-        click.secho(error_message, fg="red")
-        exit()
-    except NotADirectoryError:
-        error_message = "{0} is not a directory".format(srcDir)
-        click.secho(error_message, fg="red")
-        exit()        
-    except PermissionError:
-        error_message = "You do not have permissions to change to {0}".format(srcDir)
-        click.secho(error_message, fg="red")
-        exit()
-
-    command = assemblerDir + assembler + ' ' + sourceFile
-    
-    # Open a subprocess to run the command
-    p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True);
-
-    # Establish a connection to the process
-    (output, err) = p.communicate()
-    if not(silent):
-        if output:
-            click.secho(output.decode('ascii'), fg="blue")
-    if err:
-        click.secho(err.decode('ascii'), fg="red")
-
-    # Wait until the process has completed
-    _ = p.wait();
-
-    # Create the flags from the config file
-    fl = ""
-    for flag in flags:
-        fl = " --" + flag + fl
-    
+def get_cmds(vcass, vcass2, js, cassette):
+    ''' Gather together the list of commands '''
     vcass_cmd = ""
-    if vcass != "":
+    if vcass != "NONE":
         vcass_cmd = " --vcass " + vcass
-
+    
+    vcass2_cmd = ""
+    if vcass2 != "NONE":
+        vcass2_cmd = " --vcass2 " + vcass2
+        
     js_cmd = ""
     if js != '':
         js_cmd = " --js " + js
@@ -233,42 +560,339 @@ def cli(config, build, silent):
     cassette_cmd = ""
     if cassette != '':
         cassette_cmd = " --cassette " + cassette
-                
-           
-    command = convertEXEDir + 'convertEXE --input ' + assembledFile +  ' --prefix ' + prefix + ' --base ' + base + ' --title ' + title + js_cmd + cassette_cmd + vcass_cmd + ' --out ' + outputDir + ' --in ' + srcDir + ' ' + fl
-    if not(silent):
-        click.secho('Converting to other formats.\n', fg="blue")
+                    
+    return js_cmd + cassette_cmd + vcass_cmd + vcass2_cmd
 
+
+def output_symbol_creation_result(symbol_count, watch_count, SFILE):
+    symtext=" symbol"
+    if symbol_count != 1:
+        symtext = symtext + "s"
+    click.secho(CR + 'Acquiring ' + str(symbol_count) + symtext + ' from ',nl=False, fg=INFOCOLOR)
+    click.secho(SFILE,fg=CHANGECOLOR)
+    symtext=" symbol"
+    if watch_count != 1:
+        symtext = symtext + "s"
+    click.secho('Adding ' + str(watch_count) + symtext + ' to watchlist ' + CR, fg=INFOCOLOR)
+    
+def create_symbol_file(prefix, SFILE, symbolName, symbolValue, symbolValueFormat, preamble, postamble, silent, NOT_EXIST, defaultSymbols, init):
+    
+    pre = 0
+    symbol_count = 0
+    watch_count = 0
+    
+    FULLFILE=(init + SEP + SFILE)
+    # Get number of lines in the file
+    try:
+        num_lines = sum(1 for _ in open(FULLFILE))
+    except FileNotFoundError:            
+        error_message = NOT_EXIST.format(SFILE)
+        click.secho(error_message, fg=ERRORCOLOR)
+        exit()
+    
+    postamble_limit = num_lines - postamble    
+    OUTPUT_FILENAME = prefix + '.SYMBOLS'
+    
+    try:
+        with open(FULLFILE) as f:
+            with open(OUTPUT_FILENAME,'w') as g:      
+                while line := f.readline():
+                    pre +=1
+                    if (pre >= preamble) and (pre <= postamble_limit):
+                        symbol_count +=1
+                        line = line.split()
+                        sn = line[symbolName - 1]
+                        sv = line[symbolValue - 1]
+                        outputSV=''
+                        targetl = len(sv)
+                        for l in range (0,len(symbolValueFormat)):
+                            if (symbolValueFormat[l] == 'X') and (l <= targetl):
+                                    outputSV = outputSV + sv[l]
+
+                        if (sn.upper() in (list(map(str.upper,defaultSymbols)))):
+                            shouldload = ', Y'
+                            watch_count +=1
+                        else:
+                            shouldload = ', N'
+                        g.write(sn + ', ' + outputSV + shouldload + CR)
+                        
+    except FileNotFoundError:            
+        error_message = NOT_EXIST.format(SFILE)
+        click.secho(error_message, fg=ERRORCOLOR)
+        exit()
+    ''' Display message stating that the file is being read'''
+    if not(silent):
+        output_symbol_creation_result(symbol_count, watch_count, SFILE)
+
+
+def assemble_source_code(silent, srcDir, assemblerDir, assembler, sourceFile, symbolFile, assembler_command):
+    if not(silent):
+        click.secho('Assembling source code.', fg=INFOCOLOR)
+    
+    # Attempt to change directory to the source file directory
+    
+    try:
+        os.chdir(srcDir)
+    except FileNotFoundError:
+        error_message = "Directory: {0} does not exist".format(srcDir)
+        click.secho(error_message, fg=ERRORCOLOR)
+        exit()
+    except NotADirectoryError:
+        error_message = "{0} is not a directory".format(srcDir)
+        click.secho(error_message, fg=ERRORCOLOR)
+        exit()        
+    except PermissionError:
+        error_message = "You do not have permissions to change to {0}".format(srcDir)
+        click.secho(error_message, fg=ERRORCOLOR)
+        exit()
+
+    # command = assemblerDir + assembler + ' ' + sourceFile
     # Open a subprocess to run the command
-    p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True);
+    p = subprocess.Popen(assembler_command, stdout=subprocess.PIPE,stderr=subprocess.PIPE, shell=True);
 
     # Establish a connection to the process
     (output, err) = p.communicate()
+    if not(silent) and output:
+        click.secho(output.decode('ascii'), fg=INFOCOLOR)
+    if err:
+        click.secho(err.decode('ascii'), fg=ERRORCOLOR)        
 
     # Wait until the process has completed
     _ = p.wait();
+
+    # Improving output 
+    # Build will cease if there are warnings and/or errors
+    for line in output.decode('ascii').splitlines():  
+        if ("Error" in line or "Warning" in line) and line[:1] > '0':
+                click.secho("Assembly failed - Warnings and/or Errors.", fg=ERRORCOLOR)        
+                exit();  
+
+
+def post_assemble(silent, srcDir, assemblerDir, assembler, sourceFile, symbolFile, post_assemble_command):
+    if not(silent):
+        click.secho('Executing post assembly command.', fg=INFOCOLOR)
+    directory = os.getcwd()
+
+    try:
+        os.chdir(os.path.dirname(os.getcwd()))
+    except FileNotFoundError:
+        error_message = "Could not return to parent directory"
+        click.secho(error_message, fg=ERRORCOLOR)
+        exit()
+    # Open a subprocess to run the command
+    p = subprocess.Popen(post_assemble_command, stdout=subprocess.PIPE,stderr=subprocess.PIPE, shell=True);
+
+    # Establish a connection to the process
+    (output, err) = p.communicate()
+    if not(silent) and output:
+        click.secho(output.decode('ascii'), fg=INFOCOLOR)
+    if err:
+        click.secho(err.decode('ascii'), fg=ERRORCOLOR)        
+
+    # Wait until the process has completed
+    _ = p.wait();
+
+    # Improving output 
+    # Build will cease if there are warnings and/or errors
+    if (assembler == 'sbasm'):
+        for line in output.decode('ascii').splitlines():  
+            if ("Error" in line or "Warning" in line) and line[:1] > '0':
+                    click.secho("Post Assemble command failed - Warnings and/or Errors.", fg=ERRORCOLOR)        
+                    exit();    
+    if (assembler == 'as0'):
+        assemble_good = False
+        for line in output.decode('ascii').splitlines():  
+            if ("Error State: 0" in line):
+                assemble_good = True
+        if not assemble_good:
+            click.secho("Post Assemble command failed - Warnings and/or Errors.", fg=ERRORCOLOR)        
+            exit();    
+    
+@click.command()
+@click.option("--config","-c", help="Configuration file",required=False,default="config.toml")
+@click.option("--init","-i", help="Initialise build toolchain",required=False,default="")
+@click.option("--overwrite","-o", help="Overwrite any directories; do not check first",required=False,is_flag=True)
+@click.option("--build","-b", help="Supply a build number",required=False,default="NONE")
+@click.option("--silent","-s", help="Silent (no output).",required=False,default=False,is_flag=True)
+@click.version_option(version=_version, package_name=_package_name, message=_message)
+def cli(config, init, build, silent, overwrite):
+
+    ''' Display main banner '''
+    message = CR + _package_name + '(Version ' + _version + ') - ' + _copyright
+    if not(silent):
+        click.secho(message,fg="bright_blue")
+
+    if (init == "" and overwrite ):    
+        click.secho("You can only use the --overwrite flags with --init", fg=ERRORCOLOR)
+        exit()
+    
+    if (init != ''):
+        initialise(False, init, overwrite)
+    else:
             
-    # If there is a successful return code, continue to clean up.
-    if (p.returncode == 0):
-        if output:
-            if not(silent):
-                click.secho(output.decode('ascii'), fg="blue")
-        if err:
-            if not(silent):
-                click.secho(err.decode('ascii'), fg="red")
-                exit()
-        # Remove the build.asm file here
+        ''' Determine build number '''
+        build = determine_build_number(build)
+            
+        ''' Check supply of main configuration file '''
+        MAIN_CONFIG_FILE = config
+        config = open_configuration_file(MAIN_CONFIG_FILE, CONFIG_FILE_DOES_NOT_EXIST, silent, 'Main Configuration');
+            
+        # Validate the existence of the Config section    
+        validate_section(config,"Config", silent, 1, MAIN_CONFIG_FILE)
+        
+        MASTER_CONFIG_FILE  = default_key(config["Config"], "build", "", True,'Config',MAIN_CONFIG_FILE) # All of these keys have been checked and found to exist
+        THIS_CONFIG_FILE    = default_key(config["Config"], "this", "", True,'Config',MAIN_CONFIG_FILE)  # so no defaults are required.
+        SYMBOL_CONFIG_FILE  = default_key(config["Config"], "symbolstruct", DEFAULT_SYMBOL_CONFIG_FILE, False,'Config',MAIN_CONFIG_FILE)  
+        
+        # Check supply of main configuration file
+        bsconfig = open_configuration_file(MASTER_CONFIG_FILE, CONFIG_FILE_DOES_NOT_EXIST, silent, 'Build Setup');
+            
+        # Validating AssembledConfig
+        validate_section(bsconfig,"AssemblerConfig", silent, 1, MASTER_CONFIG_FILE)
+        
+        # Get configuration from config file
+        assembler_command = default_key(bsconfig["AssemblerConfig"], "assembleCommand", "", True,'AssemblerConfig', MASTER_CONFIG_FILE)
+        assembler         = default_key(bsconfig["AssemblerConfig"], "assembler", "", True,'AssemblerConfig', MASTER_CONFIG_FILE)    # Both these keys have been checked and found to exist
+        assemblerDir      = default_key(bsconfig["AssemblerConfig"], "assemblerDir", "", True,'AssemblerConfig', MASTER_CONFIG_FILE) # so no defaults are required.
+        postAssembleLine = default_key(bsconfig["AssemblerConfig"], "postassemble", "", True,'AssemblerConfig', MASTER_CONFIG_FILE) # so no defaults are required.
+        
+        # Check supply of the specific build configuration file
+        config = open_configuration_file(THIS_CONFIG_FILE, CONFIG_FILE_DOES_NOT_EXIST, silent, 'Build Configuration');
+    
+        # Validate all sections of the main build configuration file
+        validate_section(config,"Locations", silent,1, THIS_CONFIG_FILE)
+        validate_section(config,"BuildParameters", silent,32, THIS_CONFIG_FILE)
+        validate_section(config,"Miscellaneous", silent,32, THIS_CONFIG_FILE)
+        validate_section(config,"Symbols", silent,32, THIS_CONFIG_FILE)
+
+        do_symbol_file = True
+
+        if not does_file_exist(SYMBOL_CONFIG_FILE):   
+            click.secho("\n** No Symbol File {0} provided - symbols will not be loaded. **\n".format(SYMBOL_CONFIG_FILE), fg=ERRORCOLOR)
+            do_symbol_file = False
+        else:    
+            # Validate the relevant assembler section of the symbol structure file
+            symbol_config = open_configuration_file(SYMBOL_CONFIG_FILE, CONFIG_FILE_DOES_NOT_EXIST, silent, 'Symbol Structure for assembler');
+            validate_section(symbol_config,assembler, silent,1, THIS_CONFIG_FILE)
+            symbolName, symbolValue, symbolValueFormat, preamble, postamble, posttassemble = \
+                get_symbolstructure(symbol_config, THIS_CONFIG_FILE, assembler)
+        # Return main build parameters
+        srcDir, outputDir, sourceFile, assembledFile, prefix, base, title, vcass, vcass2, js, flags, \
+        cassette, buildASM, buildJustify, NLAfterBuildVersion, symbolFile, defaultSymbols,toolsDir = get_parameters(config, THIS_CONFIG_FILE)
+
+        ''' Ensure that the NLAfterBuildVersion is the correct format for usage '''
+        NLAfterBuildVersion = CamelCase(str(NLAfterBuildVersion))
+        
+        ''' Construct the version file for inclusion in the build '''
+        build_version_file(silent, build, buildJustify, NLAfterBuildVersion, srcDir, buildASM)
+
+        dict_replace = {
+            '%ASSEMBLER%': assembler,
+            '%ASSEMBLERDIR%': assemblerDir,
+            '%TOOLSDIR%': toolsDir,
+            '%SEP%': SEP,
+            '%SRCFILE%': sourceFile,
+            '%OUTDIR%': outputDir,
+            }
+        formatted_assembler_command = replace_symbols(dict_replace, assembler_command)
+        
+        ''' Assemble the source code '''
+        assemble_source_code(silent, srcDir, assemblerDir, assembler, sourceFile, symbolFile, formatted_assembler_command)
+
+        ''' Perform any post-assembly tasks '''
+        if postAssembleLine != "None":
+            dict_replace = {
+            '%ASSEMBLER%': assembler,
+            '%ASSEMBLEDFILE%': assembledFile,
+            '%TOOLSDIR%': toolsDir,
+            '%SEP%': SEP,
+            '%PREFIX%': prefix.upper(),
+            '%PREFIXL%': prefix.lower(),
+            '%OUTDIR%': outputDir,
+            }
+            post_assemble_line = replace_symbols(dict_replace, postAssembleLine)
+            ''' Execute the post-assembly line '''
+            post_assemble(silent, srcDir, assemblerDir, assembler, sourceFile, symbolFile, post_assemble_line)
+
+        else:
+            post_assemble_line = "N/A"
+
+        if do_symbol_file:
+            ''' Create the symbol file for inclusion in the debugger '''    
+            create_symbol_file(prefix, symbolFile, symbolName, symbolValue, symbolValueFormat, preamble, postamble, silent, SYMBOL_FILE_DOES_NOT_EXIST, defaultSymbols, srcDir);
+
+        # Create the flags for the command line
+        fl = ""
+        for flag in flags:
+            fl = " --" + flag + fl
+
+        # Create the commands to append to the command line
+        all_cmds = get_cmds(vcass, vcass2, js, cassette)   
+        
+        command = toolsDir + SEP + 'convertEXE --input ' + assembledFile +  ' --prefix ' + prefix + ' --base ' + base + ' --title ' + title + all_cmds + ' --out ' + outputDir + ' --in ' + srcDir + ' ' + fl
         if not(silent):
-            click.secho('Cleaning up after building.\n', fg="blue")
-        try:
-            os.remove(buildASM)
-        except OSError as e:
-            # If it fails, inform the user.
-            error_message = "Could not delete {0}; file does not exist".format(buildASM)
-            click.secho(error_message, fg="red")
-            exit()
+            click.secho('Converting to other formats.' + CR, fg=INFOCOLOR)
+
+        # Open a subprocess to run the command
+        q = subprocess.run(command, shell=True, check=True);
+
+        if not(silent) and q.stdout:
+            click.secho(q.stdout.decode('ascii'), fg=INFOCOLOR)
+        if q.stderr:
+            click.secho(q.stderr.decode('ascii'), fg=ERRORCOLOR)        
+
             
+        # If there is a successful return code, continue to clean up.
+        if (q.returncode == 0):
+            if q.stdout and not(silent):
+                click.secho(q.stdout.decode('ascii'), fg=INFOCOLOR)
+            if q.stderr and not(silent):
+                click.secho(q.stderr.decode('ascii'), fg=ERRORCOLOR)
+                exit()
+            cleanup(silent, srcDir + SEP + buildASM)
+        
+        # If this point is reached, then the build is complete
+        build_complete(silent)       
+    
+    
 # Build entry point
 
 if __name__ == '__main__':
     cli()
+
+
+
+
+'''
+dict_replace = {
+'%ASSEMBLEDFILE%': assembled_file,              # Name of assembled executable file
+'%ASSEMBLER_PATH%': assembler_path,             # Full path of the assembler 
+'%ASSEMBLER%': assembler_name,                  # Name of assembler to target
+'%BASE_ADDRESS%': base_address,                 # Base address to locate object code
+'%BUILDINFOFILE%': buildinfo_file,              # Name of source file (no path) for build version
+'%BUILDJUSTIFY%': buildJustify,                 # Justify property for build version
+'%DESCRIPTION%': description,                   
+'%FILENAME%': configfile,
+'%FLAGS%': flags,                               # Assembly output control flags (dictionary)
+'%NLAFTERBUILDVERSION%': NLAfterBuildVersion,   # Whether to put a newline after the build version 
+'%OUTDIR%': output_dir,                         # Directory to place outputs after assembly
+'%POST_ASSEMBLE%': post_assemble_line,          # Command to execute post assembly
+'%PREFIX%': system_prefix.upper(),              # Block name (uppercase)
+'%PREFIXL%': system_prefix.lower(),             # Block name (lowercase)
+'%SETTINGS%': genericfile,
+'%SOURCEFILE%': source_file,
+'%SRC%': init,                                  # Name of source directory (no path) for this project
+'%SRCDIR%': full_source_path,                   # Full source directory path of the source files
+'%SYMBOLFILE%': full_symbolfile,                
+'%SYMBOLS%': str(symbols),                      # Dictionary of symbols to load for the debugger
+'%TITLE%': configfile_title,
+'%TOOLSDIR%': tools_dst_dir,
+
+# Tool-specific constants
+'%PACKAGENAME%': _generator,                    # "Generated-by" constant
+
+# Platform-specific constants
+'%SEP%': SEP                                    # Platform-specific directory separator
+    }
+
+'''

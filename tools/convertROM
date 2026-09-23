@@ -1,0 +1,286 @@
+#!/usr/bin/env python3
+#  Program:	convertROM
+#
+#  Author:	Andrew Shapton
+#
+#  Date:	04-OCT-2024
+#
+#  Version:	1.3
+#
+#  Revision History
+#
+#	24-MAY-2023	1.0	Initial Version
+#	20-JUN-2023	1.1	Included Base address option
+#   22-DEC-2023 1.2 Converted to Python
+#                   Added license, silent, comment and extension arguments
+#   04-OCT-2024 1.3 Added support for Virtual Sphere ROM generation
+
+#
+# Takes a Sphere ROM binary file and converts it into a form which can be imported into one of 2 locations:
+#   i)  the SPHERE-Firmware emulator (Project ORB)
+#  ii)  the virtual SPHERE-1 emulator (https://sphere.computer/emulator/)
+#
+# Parameters:	-i/--input	    <ROM filename>				        Mandatory
+#               -o/--output	    <ROM Image header output filename>	Optional
+#               -e/--ext TEXT   <Extension for output file>.
+#               -b/--base	    <Base Address in hex e.g. 0xfe00>	Optional (default 0xfe00)
+#               -f/--format  Format of the output (ORB or VIR)  Mandatoryx
+#               -s/--silent     Do not print any messages (except errors).
+#               -h/--help	    Print this Help.
+#               -l/--license	Print the license notification (MIT).
+#               -v/--version	Print software version.
+
+# Import system libraries
+import os
+import sys
+
+from datetime import date
+
+# Import 3rd party library
+import click
+
+# Define software characteristics
+_version = '1.3';
+_package_name = 'convertROM';
+_message = _package_name + ' (Version ' + _version + '): ' + '\n' + 'Converts a Sphere ROM binary file'
+
+
+DEFAULT_BASE    = '0xFE00'
+DEFAULT_EXT_ORB = ".h"
+DEFAULT_EXT_VIR = ".rom.js"
+DEFAULT_EXT = DEFAULT_EXT_ORB
+
+
+CR                  =   "/n"
+today               =   date.today().strftime("%d/%m/%Y")
+       
+def geterror(text):
+    return text[6:]
+
+def fhex(value):
+    return f'0x{value:02x}'.upper().replace('X','x')
+
+def iserror(text):
+    status = False;
+    if text[:6] == "ERROR":
+        status = True
+    return status
+
+def read_input_file(filename):
+    try:
+        with open(filename, 'rb') as f_obj:
+            contents = f_obj.read()
+            return contents
+    except FileNotFoundError:
+        return "ERROR FileNotFoundError"
+
+    
+    
+def write_rom_image_ORB(binary_data, output_file, _input, today, base, comment):
+    with open(output_file, "w") as ROMFile:
+        ROMFile.write("/// ROM image for : " + _input + "\n")
+        ROMFile.write("/// Date          : " + today + "\n")
+        ROMFile.write("///\n")
+        ROMFile.write("/// Created by " + _package_name + " v" + _version + "\n")
+        if comment:
+            ROMFile.write("/// " + comment[:80] + "\n")        
+        ROMFile.write("static const PROGMEM int BASE = " + base.upper().replace('X','x') + ";\n")
+        ROMFile.write("static const PROGMEM int ROM[] = {\n")
+
+        newline = -1
+        for i in range(0,len(binary_data)):
+            newline = newline + 1
+            if newline == 16:
+                newline = 0
+                ROMFile.write("\n")
+            item = binary_data[i]
+            if i < (len(binary_data)-1):
+                ROMFile.write(str(int(item)) + ",")
+            else:
+                ROMFile.write(str(int(item)) + "\n};")
+
+def write_rom_image_VIR(binary_data, output_file, _input, today, base, comment):
+    with open(output_file, "w") as ROMFile:
+        ROMFile.write("/// ROM image for : " + _input + "\n")
+        ROMFile.write("/// Date          : " + today + "\n")
+        ROMFile.write("///\n")
+        ROMFile.write("/// Created by " + _package_name + " v" + _version + "\n")
+        if comment:
+            ROMFile.write("/// " + comment[:80] + "\n")
+        dot = output_file.find(".")
+        if dot > 0:
+            romname_middle_bit = output_file[:dot]
+        else:
+            romname_middle_bit = output_file
+        
+        romname_middle = "".join(ch for ch in romname_middle_bit if ch.isalnum())
+        romname = "SPHERE_" + romname_middle.upper() + "_ROM"
+        ROMFile.write("const " + romname + " = { address: 0x" + base.upper().replace('X','x') + ", data: [\n   ")
+        
+        newline = -1
+        for i in range(0,len(binary_data)):
+            newline = newline + 1
+            if newline == 16:
+                newline = 0
+                ROMFile.write("\n   ")
+            item = binary_data[i]
+            if i < (len(binary_data)-1):
+                ROMFile.write(fhex(item) + ", ")
+            else:
+                ROMFile.write(fhex(item) + "\n] };")
+            
+def validate_options( _input):
+    # Check that the mandatory input parameter exists
+    binary_data = read_input_file(_input);
+    if iserror(binary_data):
+        if (geterror(binary_data)=='FileNotFoundError'):
+            click.secho('Input file not found: ' + _input, fg="red", err=True)
+            exit(1)
+    
+def show_version(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    click.secho(_message, fg="green")
+    ctx.exit()
+
+def show_license(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    click.secho('\nMIT LICENSE\n\n' + 
+        'Copyright (c) 2023/2024 Andrew Shapton<alshapton@gmail.com>                   \n' + 
+        '                                                                              \n' + 
+        'Permission is hereby  granted, free of charge, to any  person obtaining a copy\n' + 
+        'of this software and  associated documentation files (the "Software"), to deal\n' + 
+        'in the  Software  without restriction, including without limitation the rights\n' + 
+        'to use,  copy,  modify,  merge,  publish,  distribute, sublicense, and/or sell\n' + 
+        'copies  of  the  Software, and  to permit  persons to  whom  the  Software is \n' + 
+        'furnished to do so, subject to the following conditions:                      \n' + 
+        '                                                                              \n' + 
+        'The above copyright notice and this permission notice shall be included in all\n' + 
+        'copies or substantial portions of the Software.                               \n' + 
+        '                                                                              \n' + 
+        'THE  SOFTWARE IS  PROVIDED "AS IS",  WITHOUT WARRANTY OF  ANY KIND, EXPRESS OR\n' + 
+        'IMPLIED,  INCLUDING BUT  NOT LIMITED  TO  THE  WARRANTIES  OF MERCHANTABILITY,\n' + 
+        'FITNESS FOR A PARTICULAR  PURPOSE AND NONINFRINGEMENT.  IN NO  EVENT SHALL THE\n' + 
+        'AUTHORS  OR  COPYRIGHT  HOLDERS  BE  LIABLE FOR  ANY CLAIM,  DAMAGES  OR OTHER\n' + 
+        'LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR  OTHERWISE, ARISING FROM,\n' + 
+        'OUT OF OR IN CONNECTION  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n' + 
+        'SOFTWARE.\n\n', fg="green")
+    ctx.exit()
+
+def configure_output_file(ext, _output, _input, format):
+    DEFAULT_EXT = DEFAULT_EXT_VIR if (format == 'VIR') else DEFAULT_EXT_ORB
+    
+    ext_msg = ""
+    if ext is not None:
+        USE_EXT = ext
+    else:
+        USE_EXT = DEFAULT_EXT
+    dot = USE_EXT.find(".")
+    if dot != 0:
+        USE_EXT = "." + USE_EXT
+        ext_msg = " (corrected extension format)"
+    if not _output:
+        output_file = _input
+    else:
+        output_file = _output
+    if ext != "": 
+        dot = output_file.find(".")
+        if dot > 0:
+            output_file = output_file[:dot] + USE_EXT
+        else:
+            output_file = output_file + USE_EXT
+    return ext, ext_msg, output_file, DEFAULT_EXT
+ 
+def announcement(today, silent, base, _input, output_file, _output, ext, ext_msg, comment, format ):
+    if not(silent):
+            click.secho(_package_name + ' ' + _version + ' on ' + today + CR, fg="green", bold=True)
+            click.secho('Configuration', underline = True, fg="green")
+            click.secho('         ' + 'Input ROM file  ' + _input, fg="green")
+            fmt = "ORB" if (format == 'ORB') else "Virtual SPHERE-1"
+            click.secho('         ' + 'Converting to   ' + fmt + " format" , fg="green")
+            click.secho('         ' + 'Base address    ', fg="green",nl=False)
+            def_ext = DEFAULT_EXT_VIR if (format == 'VIR') else DEFAULT_EXT_ORB
+
+            if base:
+                click.secho(base, fg="green")
+            else:
+                click.secho(DEFAULT_BASE + ' (default)', fg="blue")
+            click.secho('         ' + 'Output file     ', fg="green",nl=False)
+            if _output:
+                click.secho(_output, fg="green")
+            else:
+                click.secho("N/A", fg="blue")
+            click.secho('         ' + 'Extension       ', fg="green",nl=False)
+            if ext:
+                if ext_msg == "":
+                    click.secho(ext, fg="green")
+                else:
+                    click.secho(ext, fg="green", nl=False)
+                    click.secho(ext_msg, fg="blue")
+            else:
+                click.secho(def_ext + ' (default)', fg="blue")
+            click.secho('         ' + 'Output to       ' + output_file, fg="green")
+            click.secho('         ' + 'Comment         ', fg="green",nl=False)
+            if comment:
+                if len(comment) > 80:
+                    click.secho(comment[:50] + "...  (Truncated to 80 characters)", fg="blue")
+                else:
+                    click.secho(comment, fg="green")
+            else:
+                click.secho("N/A", fg="green")
+                
+            
+# Parameters:	-i/--input	 <ROM filename>				        Mandatory
+#               -o/--output	 <ROM Image header output filename>	Optional
+#               -b/--base	 <Base Address in hex e.g. 0xfe00>	Optional (default 0xfe00)
+#               -f/--format  Format of the output (ORB or VIR)  Mandatory
+#               -e/--ext     Extension for the output file (if the output file already has an extension, that will be used instead)
+#               -s/--silent  Do not print any messages (except errors).
+#               -h/--help	 Print this Help.
+#               -l/--license Print the license notification (MIT).
+#               -v/--version Print software version.
+
+@click.command(epilog='Check out the Github page for more documentation at https://github.com/Sphere-Corporation/CONVERT')
+@click.option("--input","-i", "_input", help="Specify a SPHERE-1 ROM file.", required=True)
+@click.option("--output", "-o", "_output", help="Specify an output file.", required=False)
+@click.option("--ext","-e", help="Extension for output file.", required=False)
+@click.option("--format","-f", help="Format for the output file [ORB or VIR].",required=True,type=click.Choice(['ORB', 'VIR'], case_sensitive=False))
+@click.option("--base","-b", help="Base address of ROM.",required=False)
+@click.option("--comment","-c", help="< 80 characters of comment for the ROM image (in quotes).",required=False)
+@click.option("--silent","-s", help="Silent (no output).",required=False, default=False, is_flag=True)
+@click.option("--license","-l", help="Show the license (MIT).", callback=show_license, expose_value=False,is_flag=True, is_eager=True)
+@click.option("--version","-v", help="Show the version.", callback=show_version, expose_value=False,is_flag=True, is_eager=True)
+
+def cli(base, _input, _output, silent, ext, comment, format):
+    
+    #
+    # Validate options supplied
+    #
+
+    validate_options(_input)
+    
+    #
+    # Set parameters based on arguments supplied
+    #
+    ext, ext_msg, output_file, DEFAULT_EXT = configure_output_file(ext, _output, _input, format)
+    
+    #
+    # Announcement
+    #
+    
+    announcement(today, silent, base, _input, output_file, _output, ext, ext_msg, comment, format)
+
+    # Determine base address
+    if not(base):
+        base = DEFAULT_BASE
+        
+    # Open the binary file for reading
+    binary_data = read_input_file(_input);
+    if format == 'ORB':
+        write_rom_image_ORB(binary_data, output_file, _input, today, base, comment)
+    else:
+        write_rom_image_VIR(binary_data, output_file, _input, today, base, comment)
+    
+if __name__ == '__main__':
+    cli()

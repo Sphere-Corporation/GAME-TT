@@ -1,0 +1,37 @@
+# symbols.toml
+#
+# Configuration for SPHERE-1 builds' common configuration
+#
+# (c) Andrew Shapton 2024
+#
+# Definition of the symbol table structure for different assemblers
+
+title = "Symbol table structure"
+
+[sbasm]
+assemblerHomeURL    = "https://www.sbprojects.net/sbasm/" # URL for obtaining this assembler.
+assembleCommand     = "%ASSEMBLERDIR%sbasm %SRCFILE%"      # Command to run assembler on the source file
+symbolName          = 1           # Name of symbol and location in row
+symbolValue         = 3           # Value of symbol and location in row
+symbolValueFormat   = "?????XXXX" # Format of Symbol:
+                                  #   ? indicates character not of interest (to be stripped out) 
+                                  #   X indicates character of interest
+preamble            = 0           # Any rows to ignore at the beginning of the symbol file
+postamble           = 0           # Any rows to ignore at the end of the symbol file
+postassemble        = "None"
+
+
+[as0]
+assemblerHomeURL    = "https://github.com/JimInCA/motorola-6800-assembler" # URL for obtaining this assembler.
+assembleCommand     = "%ASSEMBLERDIR%as0 %SRCFILE% -L CRE C S > %SYMFILE%"     # Command to run assembler on the source file
+symbolName          = 1           # Name of symbol and location in row
+symbolValue         = 2           # Value of symbol and location in row
+symbolValueFormat   = "?????XXXX" # Format of Symbol:
+                                  #   ? indicates character not of interest (to be stripped out) 
+                                  #   X indicates character of interest
+preamble            = 0           # Any rows to ignore at the beginning of the symbol file
+postamble           = 0           # Any rows to ignore at the end of the symbol file
+postassemble        = "%TOOLSDIR%%SEP%srec2bin %ASSEMBLEDFILE% -v 1 -p 0 -s %PREFIXL%.s19" # Convert a Motorola S-Record file into a binary file
+ 
+[asm]
+assemblerHomeURL    = "https://github.com/tgtakaoka/libasm/blob/main/README.md"
